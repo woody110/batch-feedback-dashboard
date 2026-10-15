@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>教辅批量反馈使用与点评查看率看板</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root{
+    --bg:#F6F5F2;
+    --surface:#FFFFFF;
+    --ink:#26215C;
+    --ink-soft:#4A4668;
+    --muted:#8A8894;
+    --line:#E8E6DF;
+    --red:#C9403A;
+    --red-bg:#FBEFEE;
+    --green:#2E7D5B;
+    --green-bg:#EDF5F0;
+    --indigo:#534AB7;
+    --indigo-bg:#EEEDFE;
+    --gray-bar:#E5E3DC;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--ink-soft);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    font-size:14px;
+    line-height:1.6;
+    padding:40px 24px 64px;
+  }
+  .wrap{max-width:1120px;margin:0 auto;}
+
+  /* ---------- header ---------- */
+  .eyebrow{
+    font-size:12px;letter-spacing:.2em;color:var(--indigo);
+    font-weight:600;margin-bottom:8px;
+  }
+  h1{
+    font-family:"Songti SC","STSong",serif;
+    font-size:32px;font-weight:700;color:var(--ink);
+    line-height:1.3;letter-spacing:.02em;
+  }
+  .subline{
+    margin-top:10px;font-size:13px;color:var(--muted);
+    display:flex;flex-wrap:wrap;gap:6px 0;align-items:center;
+  }
+  .subline .dot{margin:0 10px;color:var(--line);}
+  .subline strong{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums;}
+
+  /* ---------- kpi ---------- */
+  .kpis{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:32px 0 40px;
+  }
+  .kpi{
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:16px 18px;min-width:0;
+  }
+  .kpi .label{font-size:12px;color:var(--muted);margin-bottom:4px;line-height:1.4;white-space:nowrap;}
+  .kpi .value{
+    font-size:26px;font-weight:700;color:var(--ink);
+    font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1.2;
+  }
+  .kpi .value .unit{font-size:13px;font-weight:500;color:var(--muted);margin-left:2px;}
+  .kpi.hl{background:var(--indigo-bg);border-color:transparent;}
+  .kpi.hl .value{color:var(--indigo);}
+
+  /* ---------- section ---------- */
+  .section{margin-bottom:44px;}
+  .sec-head{
+    display:flex;align-items:baseline;justify-content:space-between;
+    margin-bottom:14px;flex-wrap:wrap;gap:6px;
+  }
+  .sec-head h2{
+    font-size:16px;font-weight:600;color:var(--ink);
+    display:flex;align-items:center;gap:10px;
+  }
+  .sec-head h2::before{
+    content:"";display:inline-block;width:4px;height:16px;
+    background:var(--indigo);border-radius:2px;flex:none;
+  }
+  .sec-head .note{font-size:12px;color:var(--muted);}
+
+  /* ---------- charts & cards ---------- */
+  .charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .chart-card{
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:18px 18px 14px;min-width:0;
+  }
+  .chart-card .c-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px;}
+  .chart-card .c-sub{font-size:12px;color:var(--muted);margin-bottom:10px;}
+  .chart-box{position:relative;width:100%;height:340px;}
+  .chart-box.tall{height:720px;}
+
+  .legend{
+    display:flex;gap:16px;font-size:12px;color:var(--muted);margin-top:10px;flex-wrap:wrap;
+  }
+  .legend span{display:inline-flex;align-items:center;gap:5px;}
+  .legend i{width:10px;height:10px;border-radius:2px;display:inline-block;}
+
+  /* ---------- table ---------- */
+  .table-card{
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    overflow:hidden;
+  }
+  .table-tools{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap;gap:10px;
+  }
+  .table-tools .hint{font-size:12px;color:var(--muted);}
+  .search{
+    font-family:inherit;font-size:13px;color:var(--ink);
+    border:1px solid var(--line);border-radius:8px;padding:6px 12px;width:200px;
+    outline:none;background:var(--bg);
+  }
+  .search:focus{border-color:var(--indigo);}
+  table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;}
+  thead th{
+    font-size:12px;font-weight:600;color:var(--muted);
+    text-align:right;padding:10px 14px;background:#FBFAF8;
+    border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none;
+  }
+  thead th:first-child{text-align:left;padding-left:18px;}
+  thead th.sorted{color:var(--indigo);}
+  thead th .arrow{font-size:10px;margin-left:3px;}
+  tbody td{
+    padding:9px 14px;text-align:right;font-size:13px;color:var(--ink-soft);
+    border-bottom:1px solid #F3F1EC;white-space:nowrap;
+  }
+  tbody td:first-child{text-align:left;padding-left:18px;font-weight:500;color:var(--ink);}
+  tbody tr:hover{background:#FAF9F6;}
+  tbody tr:last-child td{border-bottom:none;}
+
+  .rate-cell{display:flex;align-items:center;justify-content:flex-end;gap:8px;}
+  .rate-bar{
+    width:56px;height:6px;border-radius:3px;background:var(--gray-bar);
+    overflow:hidden;flex:none;
+  }
+  .rate-bar i{display:block;height:100%;border-radius:3px;}
+  .badge{
+    font-size:12px;font-weight:600;padding:1px 8px;border-radius:10px;
+    font-variant-numeric:tabular-nums;
+  }
+  .badge.up{background:var(--red-bg);color:var(--red);}
+  .badge.down{background:var(--green-bg);color:var(--green);}
+  .badge.avg{background:#F0EFEA;color:var(--muted);}
+
+  .tfoot{
+    display:flex;justify-content:flex-end;gap:14px;padding:12px 18px;
+    background:#FBFAF8;border-top:1px solid var(--line);
+    font-size:13px;color:var(--muted);flex-wrap:wrap;
+  }
+  .tfoot b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums;}
+
+  .footnote{
+    margin-top:28px;font-size:12px;color:var(--muted);line-height:1.8;
+    border-top:1px solid var(--line);padding-top:16px;
+  }
+  .footnote b{color:var(--ink-soft);font-weight:600;}
+
+  @media (max-width:900px){
+    .kpis{grid-template-columns:repeat(2,1fr);}
+    .charts{grid-template-columns:1fr;}
+  }
+  @media (max-width:560px){
+    .kpis{grid-template-columns:repeat(2,1fr);}
+    h1{font-size:26px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">素养中心教辅部 · 作业点评批量反馈</div>
+    <h1>批量反馈使用与点评查看率看板</h1>
+    <div class="subline">
+      <span>使用数据 <strong>2026.10.1-14</strong></span><span class="dot">|</span>
+      <span>点评查看数据导出于 <strong>10.15</strong>（课程小节口径合并）</span><span class="dot">|</span>
+      <span><strong>25</strong> 名教辅使用</span><span class="dot">|</span>
+      <span>整体查看率 <strong>36.3%</strong></span>
+    </div>
+  </header>
+
+  <div class="kpis">
+    <div class="kpi"><div class="label">教辅人数</div><div class="value">25<span class="unit">人</span></div></div>
+    <div class="kpi"><div class="label">批量反馈使用次数</div><div class="value">589<span class="unit">次</span></div></div>
+    <div class="kpi"><div class="label">人均使用次数</div><div class="value">23.6<span class="unit">次</span></div></div>
+    <div class="kpi"><div class="label">平均每次反馈条数</div><div class="value">5.7<span class="unit">条</span></div></div>
+    <div class="kpi"><div class="label">反馈条数（覆盖学生）</div><div class="value">3,337<span class="unit">条</span></div></div>
+    <div class="kpi"><div class="label">点评总数</div><div class="value">94,428<span class="unit">条</span></div></div>
+    <div class="kpi"><div class="label">已查看数</div><div class="value">34,301<span class="unit">条</span></div></div>
+    <div class="kpi hl"><div class="label">点评查看率</div><div class="value">36.3<span class="unit">%</span></div></div>
+  </div>
+
+  <div class="section">
+    <div class="sec-head">
+      <h2>使用与查看分布</h2>
+      <span class="note">红 = 高于平均 36.3% · 绿 = 低于平均（涨红跌绿惯例）</span>
+    </div>
+    <div class="charts">
+      <div class="chart-card">
+        <div class="c-title">点评查看率排行</div>
+        <div class="c-sub">按查看率从高到低，虚线为整体平均 36.3%</div>
+        <div class="chart-box tall"><canvas id="rankChart" aria-label="25名教辅点评查看率排行条形图" role="img">排行图</canvas></div>
+        <div class="legend">
+          <span><i style="background:#C9403A"></i>高于平均</span>
+          <span><i style="background:#2E7D5B"></i>低于平均</span>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="c-title">点评发送与查看构成</div>
+        <div class="c-sub">按点评总数从多到少，悬停查看各人查看率</div>
+        <div class="chart-box tall"><canvas id="stackChart" aria-label="25名教辅点评总数与已查看构成堆叠条形图" role="img">构成图</canvas></div>
+        <div class="legend">
+          <span><i style="background:#534AB7"></i>已查看</span>
+          <span><i style="background:#D9D6F3"></i>未查看</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-head">
+      <h2>教辅明细</h2>
+      <span class="note">25 人 · 点击表头可排序，支持搜索</span>
+    </div>
+    <div class="table-card">
+      <div class="table-tools">
+        <span class="hint">默认按点评查看率从高到低 · 查看率红 = 高于平均 36.3%，绿 = 低于平均</span>
+        <input class="search" id="search" type="text" placeholder="搜索教辅姓名…" autocomplete="off">
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="mainTable">
+          <thead>
+            <tr>
+              <th data-key="name" data-type="str">教辅姓名</th>
+              <th data-key="use" data-type="num">使用次数</th>
+              <th data-key="fb" data-type="num">反馈条数</th>
+              <th data-key="stu" data-type="num">覆盖学生数</th>
+              <th data-key="bsize" data-type="num">平均每次反馈条数</th>
+              <th data-key="total" data-type="num">点评总数</th>
+              <th data-key="viewed" data-type="num">已查看数</th>
+              <th data-key="rate" data-type="num" class="sorted">点评查看率 <span class="arrow">▼</span></th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="tfoot">
+        <span>25 人合计</span>
+        <span>使用 <b>589</b> 次</span>
+        <span>反馈 <b>3,337</b> 条 · 覆盖学生 <b>3,337</b> 人</span>
+        <span>平均每次反馈 <b>5.7</b> 条</span>
+        <span>点评 <b>94,428</b> 条 · 已查看 <b>34,301</b> 条 · 查看率 <b>36.3%</b></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footnote">
+    <b>口径说明</b>：统计区间 2026-10-01 至 2026-10-14，数据来源为教辅作业反馈明细（学生维度）与课程小节点评查看数据；
+    使用次数 = 同一教辅在同一分钟内（精确到分钟）发送的点评反馈计为 1 次批量反馈使用；
+    平均每次反馈条数 = 反馈条数 ÷ 使用次数；覆盖学生数为该教辅反馈涉及的唯一学生数；
+    点评查看率 = 已查看数 ÷ 点评总数，按 2026-10-15 导出的课程小节点评查看数据、把同一教辅所带小节的点评合并计算。
+  </div>
+</div>
+
+<script>
+const DATA=[
+{name:"宋杨",use:97,fb:211,stu:211,bsize:2.2,total:4329,viewed:1914,rate:44.2},
+{name:"李泓雪",use:65,fb:217,stu:217,bsize:3.3,total:4767,viewed:1941,rate:40.7},
+{name:"郭子玉",use:62,fb:212,stu:212,bsize:3.4,total:4460,viewed:1977,rate:44.3},
+{name:"褚福子航",use:56,fb:176,stu:176,bsize:3.1,total:4009,viewed:1801,rate:44.9},
+{name:"蔡爱露",use:53,fb:197,stu:197,bsize:3.7,total:4643,viewed:1841,rate:39.7},
+{name:"周钇辰",use:52,fb:187,stu:187,bsize:3.6,total:3833,viewed:1622,rate:42.3},
+{name:"刘君",use:44,fb:219,stu:219,bsize:5.0,total:4541,viewed:1635,rate:36.0},
+{name:"薛加加",use:41,fb:191,stu:191,bsize:4.7,total:4233,viewed:1676,rate:39.6},
+{name:"王菁菁",use:34,fb:201,stu:201,bsize:5.9,total:4496,viewed:1758,rate:39.1},
+{name:"孙鹏",use:25,fb:99,stu:99,bsize:4.0,total:3751,viewed:1265,rate:33.7},
+{name:"张景",use:11,fb:173,stu:173,bsize:15.7,total:3689,viewed:766,rate:20.8},
+{name:"赵娜",use:11,fb:208,stu:208,bsize:18.9,total:4413,viewed:758,rate:17.2},
+{name:"王子鑫",use:8,fb:252,stu:252,bsize:31.5,total:3998,viewed:1589,rate:39.7},
+{name:"段莎莎",use:5,fb:297,stu:297,bsize:59.4,total:4288,viewed:1682,rate:39.2},
+{name:"周宇诺",use:5,fb:11,stu:11,bsize:2.2,total:1422,viewed:470,rate:33.1},
+{name:"王惠贤",use:4,fb:120,stu:120,bsize:30.0,total:3077,viewed:1212,rate:39.4},
+{name:"张燕",use:4,fb:230,stu:230,bsize:57.5,total:4213,viewed:1527,rate:36.2},
+{name:"吴佳雨",use:3,fb:3,stu:3,bsize:1.0,total:2035,viewed:779,rate:38.3},
+{name:"卢瑶",use:2,fb:94,stu:94,bsize:47.0,total:3836,viewed:829,rate:21.6},
+{name:"魏东涵",use:2,fb:13,stu:13,bsize:6.5,total:5096,viewed:1396,rate:27.4},
+{name:"侯新新",use:1,fb:6,stu:6,bsize:6.0,total:3986,viewed:1528,rate:38.3},
+{name:"季思雨",use:1,fb:4,stu:4,bsize:4.0,total:3797,viewed:1403,rate:37.0},
+{name:"李培丽",use:1,fb:1,stu:1,bsize:1.0,total:2395,viewed:879,rate:36.7},
+{name:"师薏涵",use:1,fb:1,stu:1,bsize:1.0,total:1355,viewed:580,rate:42.8},
+{name:"王雅鑫",use:1,fb:14,stu:14,bsize:14.0,total:3766,viewed:1473,rate:39.1}
+];
+const AVG=36.3;
+const gridColor="rgba(38,33,92,.07)";
+const tickColor="#8A8894";
+
+/* ---------- chart 1: rank ---------- */
+const byRate=[...DATA].sort((a,b)=>b.rate-a.rate);
+new Chart(document.getElementById("rankChart"),{
+  type:"bar",
+  data:{
+    labels:byRate.map(d=>d.name),
+    datasets:[{
+      label:"查看率",
+      data:byRate.map(d=>d.rate),
+      backgroundColor:byRate.map(d=>d.rate>AVG+0.05?"#C9403A":d.rate<AVG-0.05?"#2E7D5B":"#B4B2A9"),
+      borderRadius:3,barThickness:16
+    }]
+  },
+  options:{
+    indexAxis:"y",responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:c=>" 查看率 "+c.parsed.x.toFixed(1)+"%"}}
+    },
+    scales:{
+      x:{min:0,max:50,grid:{color:gridColor},ticks:{color:tickColor,font:{size:11},callback:v=>v+"%"}},
+      y:{grid:{display:false},ticks:{color:"#4A4668",font:{size:11}}}
+    }
+  },
+  plugins:[{
+    id:"avgLine",
+    afterDatasetsDraw(chart){
+      const x=chart.scales.x.getPixelForValue(AVG);
+      const {top,bottom}=chart.chartArea;
+      const ctx=chart.ctx;
+      ctx.save();
+      ctx.strokeStyle="#26215C";ctx.setLineDash([5,4]);ctx.lineWidth=1.2;
+      ctx.beginPath();ctx.moveTo(x,top);ctx.lineTo(x,bottom);ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.font="11px sans-serif";ctx.fillStyle="#26215C";
+      ctx.fillText("平均 36.3%",Math.min(x+6,chart.chartArea.right-80),top+12);
+      ctx.restore();
+    }
+  }]
+});
+
+/* ---------- chart 2: stack ---------- */
+const byTotal=[...DATA].sort((a,b)=>b.total-a.total);
+new Chart(document.getElementById("stackChart"),{
+  type:"bar",
+  data:{
+    labels:byTotal.map(d=>d.name),
+    datasets:[
+      {label:"已查看",data:byTotal.map(d=>d.viewed),backgroundColor:"#534AB7",borderRadius:3,barThickness:16},
+      {label:"未查看",data:byTotal.map(d=>d.total-d.viewed),backgroundColor:"#D9D6F3",borderRadius:3,barThickness:16}
+    ]
+  },
+  options:{
+    indexAxis:"y",responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{
+        label:c=>" "+c.dataset.label+" "+c.parsed.x.toLocaleString("zh-CN")+" 条",
+        footer:items=>"查看率 "+(items[0].parsed.x/(items[0].parsed.x+items[1].parsed.x)*100).toFixed(1)+"%"
+      }}
+    },
+    scales:{
+      x:{stacked:true,grid:{color:gridColor},ticks:{color:tickColor,font:{size:11},callback:v=>(v/1000)+"k"}},
+      y:{stacked:true,grid:{display:false},ticks:{color:"#4A4668",font:{size:11}}}
+    }
+  }
+});
+
+/* ---------- table ---------- */
+let sortKey="rate",sortDir=-1;
+const tbody=document.getElementById("tbody");
+const fmt=n=>n.toLocaleString("zh-CN");
+
+function render(){
+  const q=document.getElementById("search").value.trim();
+  let rows=DATA.filter(d=>!q||d.name.includes(q));
+  rows.sort((a,b)=>{
+    const va=a[sortKey],vb=b[sortKey];
+    const cmp=(typeof va==="string")?va.localeCompare(vb,"zh"):va-vb;
+    return cmp*sortDir;
+  });
+  tbody.innerHTML=rows.map(d=>{
+    const up=d.rate>AVG+0.05,down=d.rate<AVG-0.05;
+    const cls=up?"up":down?"down":"avg";
+    const color=up?"#C9403A":down?"#2E7D5B":"#B4B2A9";
+    return `<tr>
+      <td>${d.name}</td>
+      <td>${d.use}</td>
+      <td>${fmt(d.fb)}</td>
+      <td>${fmt(d.stu)}</td>
+      <td>${d.bsize.toFixed(1)}</td>
+      <td>${fmt(d.total)}</td>
+      <td>${fmt(d.viewed)}</td>
+      <td><div class="rate-cell">
+        <span class="rate-bar"><i style="width:${d.rate/50*100}%;background:${color}"></i></span>
+        <span class="badge ${cls}">${d.rate.toFixed(1)}%</span>
+      </div></td>
+    </tr>`;
+  }).join("")||`<tr><td colspan="8" style="text-align:center;color:#8A8894;padding:24px">没有匹配的教辅</td></tr>`;
+}
+
+document.querySelectorAll("#mainTable thead th").forEach(th=>{
+  th.addEventListener("click",()=>{
+    const key=th.dataset.key;
+    if(sortKey===key){sortDir*=-1;}else{sortKey=key;sortDir=(th.dataset.type==="str")?1:-1;}
+    document.querySelectorAll("#mainTable thead th").forEach(t=>{
+      t.classList.remove("sorted");
+      const a=t.querySelector(".arrow");if(a)a.remove();
+    });
+    th.classList.add("sorted");
+    th.insertAdjacentHTML("beforeend",` <span class="arrow">${sortDir===1?"▲":"▼"}</span>`);
+    render();
+  });
+});
+document.getElementById("search").addEventListener("input",render);
+render();
+</script>
+</body>
+</html>
