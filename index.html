@@ -365,12 +365,25 @@ new Chart(document.getElementById("stackChart"),{
   },
   options:{
     indexAxis:"y",responsive:true,maintainAspectRatio:false,
+    interaction:{mode:"index",intersect:false,axis:"y"},
     plugins:{
       legend:{display:false},
-      tooltip:{callbacks:{
-        label:c=>" "+c.dataset.label+" "+c.parsed.x.toLocaleString("zh-CN")+" 条",
-        footer:items=>"查看率 "+(items[0].parsed.x/(items[0].parsed.x+items[1].parsed.x)*100).toFixed(1)+"%"
-      }}
+      tooltip:{
+        mode:"index",intersect:false,
+        callbacks:{
+          title:items=>items[0].label,
+          label:c=>" "+c.dataset.label+" "+c.parsed.x.toLocaleString("zh-CN")+" 条",
+          footer:items=>{
+            const d=byTotal.find(x=>x.name===items[0].label);
+            if(!d) return "";
+            return [
+              "点评总数 "+d.total.toLocaleString("zh-CN")+" 条",
+              "未查看 "+(d.total-d.viewed).toLocaleString("zh-CN")+" 条",
+              "查看率 "+(d.viewed/d.total*100).toFixed(1)+"%"
+            ];
+          }
+        }
+      }
     },
     scales:{
       x:{stacked:true,grid:{color:gridColor},ticks:{color:tickColor,font:{size:11},callback:v=>(v/1000)+"k"}},
