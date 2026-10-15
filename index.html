@@ -159,6 +159,19 @@
   }
   .footnote b{color:var(--ink-soft);font-weight:600;}
 
+  @media (min-width:1440px){
+    body{padding:48px 40px 72px;}
+    .wrap{max-width:1520px;}
+    .kpis{grid-template-columns:repeat(8,1fr);}
+    .kpi{padding:18px 20px;}
+    .kpi .value{font-size:28px;}
+    h1{font-size:34px;}
+    .chart-box.tall{height:760px;}
+    thead th{padding:12px 18px;}
+    tbody td{padding:11px 18px;}
+    .charts{gap:20px;}
+    .section{margin-bottom:52px;}
+  }
   @media (max-width:900px){
     .kpis{grid-template-columns:repeat(2,1fr);}
     .charts{grid-template-columns:1fr;}
@@ -189,9 +202,9 @@
     <div class="kpi"><div class="label">人均使用次数</div><div class="value">23.6<span class="unit">次</span></div></div>
     <div class="kpi"><div class="label">平均每次反馈条数</div><div class="value">5.7<span class="unit">条</span></div></div>
     <div class="kpi"><div class="label">反馈条数（覆盖学生）</div><div class="value">3,337<span class="unit">条</span></div></div>
+    <div class="kpi hl"><div class="label">点评查看率</div><div class="value">36.3<span class="unit">%</span></div></div>
     <div class="kpi"><div class="label">点评总数</div><div class="value">94,428<span class="unit">条</span></div></div>
     <div class="kpi"><div class="label">已查看数</div><div class="value">34,301<span class="unit">条</span></div></div>
-    <div class="kpi hl"><div class="label">点评查看率</div><div class="value">36.3<span class="unit">%</span></div></div>
   </div>
 
   <div class="section">
