@@ -3,443 +3,330 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>教辅批量反馈使用与点评查看率看板</title>
+<title>批量反馈使用与点评查看率看板</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
   :root{
-    --bg:#F6F5F2;
-    --surface:#FFFFFF;
-    --ink:#26215C;
-    --ink-soft:#4A4668;
-    --muted:#8A8894;
-    --line:#E8E6DF;
-    --red:#C9403A;
-    --red-bg:#FBEFEE;
-    --green:#2E7D5B;
-    --green-bg:#EDF5F0;
-    --indigo:#534AB7;
-    --indigo-bg:#EEEDFE;
-    --gray-bar:#E5E3DC;
+    --bg:#F7F7F4; --surface:#FFFFFF; --ink:#1F1D2B; --ink2:#4A4763; --muted:#8B8899;
+    --line:#E9E7DF; --indigo:#4F46E5; --indigo-bg:#EEEDFE; --teal:#0D9488; --teal-bg:#E6F5F2;
+    --amber:#D97706; --amber-bg:#FEF3E2; --red:#C9403A; --red-bg:#FBEFEE; --green:#2E7D5B; --green-bg:#EDF5F0;
+    --slate:#94A3B8;
   }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{
-    background:var(--bg);
-    color:var(--ink-soft);
-    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-    font-size:14px;
-    line-height:1.6;
-    padding:40px 24px 64px;
-  }
-  .wrap{max-width:1120px;margin:0 auto;}
-
-  /* ---------- header ---------- */
-  .eyebrow{
-    font-size:12px;letter-spacing:.2em;color:var(--indigo);
-    font-weight:600;margin-bottom:8px;
-  }
-  h1{
-    font-family:"Songti SC","STSong",serif;
-    font-size:32px;font-weight:700;color:var(--ink);
-    line-height:1.3;letter-spacing:.02em;
-  }
-  .subline{
-    margin-top:10px;font-size:13px;color:var(--muted);
-    display:flex;flex-wrap:wrap;gap:6px 0;align-items:center;
-  }
-  .subline .dot{margin:0 10px;color:var(--line);}
-  .subline strong{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums;}
-
-  /* ---------- kpi ---------- */
-  .kpis{
-    display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:32px 0 40px;
-  }
-  .kpi{
-    background:var(--surface);border:1px solid var(--line);border-radius:12px;
-    padding:16px 18px;min-width:0;
-  }
-  .kpi .label{font-size:12px;color:var(--muted);margin-bottom:4px;line-height:1.4;white-space:nowrap;}
-  .kpi .value{
-    font-size:26px;font-weight:700;color:var(--ink);
-    font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1.2;
-  }
-  .kpi .value .unit{font-size:13px;font-weight:500;color:var(--muted);margin-left:2px;}
-  .kpi.hl{background:var(--indigo-bg);border-color:transparent;}
-  .kpi.hl .value{color:var(--indigo);}
-
-  /* ---------- section ---------- */
-  .section{margin-bottom:44px;}
-  .sec-head{
-    display:flex;align-items:baseline;justify-content:space-between;
-    margin-bottom:14px;flex-wrap:wrap;gap:6px;
-  }
-  .sec-head h2{
-    font-size:16px;font-weight:600;color:var(--ink);
-    display:flex;align-items:center;gap:10px;
-  }
-  .sec-head h2::before{
-    content:"";display:inline-block;width:4px;height:16px;
-    background:var(--indigo);border-radius:2px;flex:none;
-  }
-  .sec-head .note{font-size:12px;color:var(--muted);}
-
-  /* ---------- charts & cards ---------- */
-  .charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-  .chart-card{
-    background:var(--surface);border:1px solid var(--line);border-radius:12px;
-    padding:18px 18px 14px;min-width:0;
-  }
-  .chart-card .c-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px;}
-  .chart-card .c-sub{font-size:12px;color:var(--muted);margin-bottom:10px;}
-  .chart-box{position:relative;width:100%;height:340px;}
-  .chart-box.tall{height:720px;}
-
-  .legend{
-    display:flex;gap:16px;font-size:12px;color:var(--muted);margin-top:10px;flex-wrap:wrap;
-  }
-  .legend span{display:inline-flex;align-items:center;gap:5px;}
-  .legend i{width:10px;height:10px;border-radius:2px;display:inline-block;}
-
-  /* ---------- table ---------- */
-  .table-card{
-    background:var(--surface);border:1px solid var(--line);border-radius:12px;
-    overflow:hidden;
-  }
-  .table-tools{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:14px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap;gap:10px;
-  }
-  .table-tools .hint{font-size:12px;color:var(--muted);}
-  .search{
-    font-family:inherit;font-size:13px;color:var(--ink);
-    border:1px solid var(--line);border-radius:8px;padding:6px 12px;width:200px;
-    outline:none;background:var(--bg);
-  }
-  .search:focus{border-color:var(--indigo);}
-  table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;}
-  thead th{
-    font-size:12px;font-weight:600;color:var(--muted);
-    text-align:right;padding:10px 14px;background:#FBFAF8;
-    border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none;
-  }
-  thead th:first-child{text-align:left;padding-left:18px;}
-  thead th.sorted{color:var(--indigo);}
-  thead th .arrow{font-size:10px;margin-left:3px;}
-  tbody td{
-    padding:9px 14px;text-align:right;font-size:13px;color:var(--ink-soft);
-    border-bottom:1px solid #F3F1EC;white-space:nowrap;
-  }
-  tbody td:first-child{text-align:left;padding-left:18px;font-weight:500;color:var(--ink);}
-  tbody tr:hover{background:#FAF9F6;}
-  tbody tr:last-child td{border-bottom:none;}
-
-  .rate-cell{display:flex;align-items:center;justify-content:flex-end;gap:8px;}
-  .rate-bar{
-    width:56px;height:6px;border-radius:3px;background:var(--gray-bar);
-    overflow:hidden;flex:none;
-  }
-  .rate-bar i{display:block;height:100%;border-radius:3px;}
-  .badge{
-    font-size:12px;font-weight:600;padding:1px 8px;border-radius:10px;
-    font-variant-numeric:tabular-nums;
-  }
-  .badge.up{background:var(--red-bg);color:var(--red);}
-  .badge.down{background:var(--green-bg);color:var(--green);}
-  .badge.avg{background:#F0EFEA;color:var(--muted);}
-
-  .tfoot{
-    display:flex;justify-content:flex-end;gap:14px;padding:12px 18px;
-    background:#FBFAF8;border-top:1px solid var(--line);
-    font-size:13px;color:var(--muted);flex-wrap:wrap;
-  }
-  .tfoot b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums;}
-
-  .footnote{
-    margin-top:28px;font-size:12px;color:var(--muted);line-height:1.8;
-    border-top:1px solid var(--line);padding-top:16px;
-  }
-  .footnote b{color:var(--ink-soft);font-weight:600;}
-
-  @media (min-width:1440px){
-    body{padding:48px 40px 72px;}
-    .wrap{max-width:1520px;}
-    .kpis{grid-template-columns:repeat(8,1fr);}
-    .kpi{padding:18px 20px;}
-    .kpi .value{font-size:28px;}
-    h1{font-size:34px;}
-    .chart-box.tall{height:760px;}
-    thead th{padding:12px 18px;}
-    tbody td{padding:11px 18px;}
-    .charts{gap:20px;}
-    .section{margin-bottom:52px;}
-  }
-  @media (max-width:900px){
-    .kpis{grid-template-columns:repeat(2,1fr);}
-    .charts{grid-template-columns:1fr;}
-  }
-  @media (max-width:560px){
-    .kpis{grid-template-columns:repeat(2,1fr);}
-    h1{font-size:26px;}
-  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1360px;margin:0 auto;padding:44px 32px 80px}
+  header.top{border-bottom:2px solid var(--ink);padding-bottom:20px;margin-bottom:28px}
+  h1{font-size:30px;letter-spacing:-.4px;line-height:1.25}
+  .sub{color:var(--ink2);font-size:14px;margin-top:8px}
+  .sub b{color:var(--ink);font-weight:600}
+  .tagrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .tag{font-size:12px;padding:3px 10px;border-radius:999px;background:#EEEBE3;color:var(--ink2)}
+  .tag.i{background:var(--indigo-bg);color:#4338CA}
+  .tag.t{background:var(--teal-bg);color:#0F766E}
+  h2{font-size:17px;margin:0 0 4px}
+  .sec{margin-top:40px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .sec-head .hint{font-size:12.5px;color:var(--muted)}
+  .grid{display:grid;gap:16px}
+  .g6{grid-template-columns:repeat(6,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g21{grid-template-columns:1.35fr 1fr}
+  .g12{grid-template-columns:1fr 1.5fr}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  .kpi .lab{font-size:12.5px;color:var(--muted);line-height:1.4}
+  .kpi .val{font-size:30px;font-weight:700;letter-spacing:-1px;margin-top:8px;font-variant-numeric:tabular-nums}
+  .kpi .val small{font-size:14px;font-weight:500;color:var(--muted);margin-left:2px;letter-spacing:0}
+  .kpi .cap{font-size:12px;color:var(--muted);margin-top:4px}
+  .kpi.hl{background:var(--indigo-bg);border-color:transparent}
+  .kpi.hl .val{color:var(--indigo)}
+  .kpi.tl{background:var(--teal-bg);border-color:transparent}
+  .kpi.tl .val{color:var(--teal)}
+  .chartbox{position:relative;height:280px}
+  .chartbox.tall{height:360px}
+  .chartbox.xtall{height:440px}
+  .note{font-size:12.5px;color:var(--muted);line-height:1.7}
+  .callout{border-left:3px solid var(--amber);background:var(--amber-bg);padding:12px 14px;border-radius:0 8px 8px 0;font-size:13.5px;color:#7C4A03}
+  .callout.good{border-color:var(--green);background:var(--green-bg);color:#205B43}
+  .callout.bad{border-color:var(--red);background:var(--red-bg);color:#8F2B26}
+  .callout.i{border-color:var(--indigo);background:var(--indigo-bg);color:#3730A3}
+  .mini{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+  .chip{font-size:12px;padding:4px 10px;border-radius:8px;background:#F4F2EC;color:var(--ink2);border:1px solid var(--line)}
+  .chip b{color:var(--ink)}
+  .rank{display:flex;flex-direction:column;gap:9px;margin-top:6px}
+  .rank-row{display:grid;grid-template-columns:20px 1fr auto auto;gap:10px;align-items:center;font-size:13px}
+  .rank-row .idx{color:var(--muted);font-size:12px;text-align:right}
+  .bar{height:9px;border-radius:6px;background:#EFEDE6;overflow:hidden}
+  .bar>i{display:block;height:100%;border-radius:6px;background:var(--indigo)}
+  .num{font-variant-numeric:tabular-nums}
+  table{border-collapse:collapse;width:100%;font-size:13px;background:var(--surface)}
+  th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{background:#F2F0EA;font-weight:600;font-size:12px;color:var(--ink2);cursor:pointer;position:sticky;top:0}
+  th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+  th:hover{color:var(--indigo)}
+  tbody tr:hover{background:#FAF9F5}
+  .tablewrap{max-height:520px;overflow:auto;border:1px solid var(--line);border-radius:12px}
+  .search{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+  input[type=text]{padding:8px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px;background:#fff;outline:none;width:220px}
+  input[type=text]:focus{border-color:var(--indigo)}
+  .pill{display:inline-block;min-width:52px;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600}
+  .pill.hi{background:var(--green-bg);color:#166534}
+  .pill.mid{background:var(--amber-bg);color:#92400E}
+  .pill.lo{background:var(--red-bg);color:#991B1B}
+  footer{margin-top:52px;padding-top:18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);line-height:1.8}
+  @media (max-width:1180px){.g6{grid-template-columns:repeat(3,1fr)}.g3,.g21,.g12{grid-template-columns:1fr 1fr}}
+  @media (max-width:820px){.wrap{padding:24px 16px 60px}.g6,.g3,.g2,.g21,.g12{grid-template-columns:1fr 1fr}h1{font-size:23px}.kpi .val{font-size:24px}}
 </style>
 </head>
 <body>
 <div class="wrap">
-
-  <header>
-    <div class="eyebrow">素养中心教辅部 · 作业点评批量反馈</div>
+  <header class="top">
     <h1>批量反馈使用与点评查看率看板</h1>
-    <div class="subline">
-      <span>使用数据 <strong>2026.10.1-14</strong></span><span class="dot">|</span>
-      <span>点评查看数据导出于 <strong>10.15</strong>（课程小节口径合并）</span><span class="dot">|</span>
-      <span><strong>25</strong> 名教辅使用</span><span class="dot">|</span>
-      <span>整体查看率 <strong>36.3%</strong></span>
+    <div class="sub">使用数据 <b>2026-10-01 至 2026-10-20</b> ｜ 点评查看率 <b>2026-08-01 至 2026-10-20 累计</b> ｜ 素养中心教辅部</div>
+    <div class="tagrow">
+      <span class="tag i">批量反馈经"教辅+分钟"合并计次</span>
+      <span class="tag t">查看率＝已查看÷点评总数</span>
+      <span class="tag">上下册合并按年级统计</span>
     </div>
   </header>
 
-  <div class="kpis">
-    <div class="kpi"><div class="label">教辅人数</div><div class="value">25<span class="unit">人</span></div></div>
-    <div class="kpi"><div class="label">批量反馈使用次数</div><div class="value">589<span class="unit">次</span></div></div>
-    <div class="kpi"><div class="label">人均使用次数</div><div class="value">23.6<span class="unit">次</span></div></div>
-    <div class="kpi"><div class="label">平均每次反馈条数</div><div class="value">5.7<span class="unit">条</span></div></div>
-    <div class="kpi"><div class="label">反馈条数（覆盖学生）</div><div class="value">3,337<span class="unit">条</span></div></div>
-    <div class="kpi hl"><div class="label">点评查看率</div><div class="value">36.3<span class="unit">%</span></div></div>
-    <div class="kpi"><div class="label">点评总数</div><div class="value">94,428<span class="unit">条</span></div></div>
-    <div class="kpi"><div class="label">已查看数</div><div class="value">34,301<span class="unit">条</span></div></div>
-  </div>
+  <div class="grid g6" id="kpis"></div>
 
-  <div class="section">
-    <div class="sec-head">
-      <h2>使用与查看分布</h2>
-      <span class="note">红 = 高于平均 36.3% · 绿 = 低于平均（涨红跌绿惯例）</span>
-    </div>
-    <div class="charts">
-      <div class="chart-card">
-        <div class="c-title">点评查看率排行</div>
-        <div class="c-sub">按查看率从高到低，虚线为整体平均 36.3%</div>
-        <div class="chart-box tall"><canvas id="rankChart" aria-label="25名教辅点评查看率排行条形图" role="img">排行图</canvas></div>
-        <div class="legend">
-          <span><i style="background:#C9403A"></i>高于平均</span>
-          <span><i style="background:#2E7D5B"></i>低于平均</span>
-        </div>
+  <section class="sec">
+    <div class="sec-head"><h2>一、查看率对比：用与不用批量反馈</h2><span class="hint">累计口径，三组对比</span></div>
+    <div class="grid g21">
+      <div class="card">
+        <div class="chartbox"><canvas id="cmpChart"></canvas></div>
       </div>
-      <div class="chart-card">
-        <div class="c-title">点评发送与查看构成</div>
-        <div class="c-sub">按点评总数从多到少，悬停查看各人查看率</div>
-        <div class="chart-box tall"><canvas id="stackChart" aria-label="25名教辅点评总数与已查看构成堆叠条形图" role="img">构成图</canvas></div>
-        <div class="legend">
-          <span><i style="background:#534AB7"></i>已查看</span>
-          <span><i style="background:#D9D6F3"></i>未查看</span>
-        </div>
+      <div class="card" style="display:flex;flex-direction:column;justify-content:center;gap:14px">
+        <div class="callout bad" id="gapCallout"></div>
+        <div class="note" id="cmpNote"></div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <div class="section">
-    <div class="sec-head">
-      <h2>教辅明细</h2>
-      <span class="note">25 人 · 点击表头可排序，支持搜索</span>
-    </div>
-    <div class="table-card">
-      <div class="table-tools">
-        <span class="hint">默认按点评查看率从高到低 · 查看率红 = 高于平均 36.3%，绿 = 低于平均</span>
-        <input class="search" id="search" type="text" placeholder="搜索教辅姓名…" autocomplete="off">
-      </div>
-      <div style="overflow-x:auto;">
-        <table id="mainTable">
-          <thead>
-            <tr>
-              <th data-key="name" data-type="str">教辅姓名</th>
-              <th data-key="use" data-type="num">使用次数</th>
-              <th data-key="fb" data-type="num">反馈条数</th>
-              <th data-key="stu" data-type="num">覆盖学生数</th>
-              <th data-key="bsize" data-type="num">平均每次反馈条数</th>
-              <th data-key="total" data-type="num">点评总数</th>
-              <th data-key="viewed" data-type="num">已查看数</th>
-              <th data-key="rate" data-type="num" class="sorted">点评查看率 <span class="arrow">▼</span></th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>
-      </div>
-      <div class="tfoot">
-        <span>25 人合计</span>
-        <span>使用 <b>589</b> 次</span>
-        <span>反馈 <b>3,337</b> 条 · 覆盖学生 <b>3,337</b> 人</span>
-        <span>平均每次反馈 <b>5.7</b> 条</span>
-        <span>点评 <b>94,428</b> 条 · 已查看 <b>34,301</b> 条 · 查看率 <b>36.3%</b></span>
+  <section class="sec">
+    <div class="sec-head"><h2>二、查看率分布：两组教辅各落在哪一档</h2><span class="hint">按每位教辅的累计查看率分档，占比对比</span></div>
+    <div class="grid g21">
+      <div class="card"><div class="chartbox"><canvas id="bandChart"></canvas></div></div>
+      <div class="card" style="display:flex;flex-direction:column;justify-content:center;gap:12px">
+        <div class="callout i" id="bandCallout"></div>
+        <div class="note">使用组的查看率高度集中，未使用组更分散，说明"用不用批量反馈"与"查看率高低"并不是简单的线性关系。</div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <div class="footnote">
-    <b>口径说明</b>：统计区间 2026-10-01 至 2026-10-14，数据来源为教辅作业反馈明细（学生维度）与课程小节点评查看数据；
-    使用次数 = 同一教辅在同一分钟内（精确到分钟）发送的点评反馈计为 1 次批量反馈使用；
-    平均每次反馈条数 = 反馈条数 ÷ 使用次数；覆盖学生数为该教辅反馈涉及的唯一学生数；
-    点评查看率 = 已查看数 ÷ 点评总数，按 2026-10-15 导出的课程小节点评查看数据、把同一教辅所带小节的点评合并计算。
-  </div>
+  <section class="sec">
+    <div class="sec-head"><h2>三、年级维度：低年级是查看率洼地</h2><span class="hint">柱＝点评查看率，标注＝该年级使用批量反馈的教辅人数</span></div>
+    <div class="card"><div class="chartbox tall"><canvas id="gradeChart"></canvas></div></div>
+    <div class="mini">
+      <span class="chip">一年级 <b>23.0%</b> · 用批量反馈的教辅仅 2 位</span>
+      <span class="chip">二年级 <b>23.6%</b> · 13 位</span>
+      <span class="chip">六年级 <b>45.9%</b> 最高</span>
+      <span class="chip">七、八年级暂无教辅使用批量反馈</span>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>四、批量规模：一次到底发了多少学生</h2><span class="hint">按每次批量反馈覆盖的学生数分布</span></div>
+    <div class="grid g21">
+      <div class="card"><div class="chartbox"><canvas id="sizeChart"></canvas></div></div>
+      <div class="card" style="display:flex;flex-direction:column;justify-content:center;gap:12px">
+        <div class="callout" id="sizeCallout"></div>
+        <div class="note">"批量"并不等于"大批量"：相当一部分操作只覆盖 1 个学生，功能更接近"一次点评多人"的便捷入口。</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>五、使用节奏：集中在少数几天</h2><span class="hint">柱＝反馈条数，线＝批量反馈使用次数</span></div>
+    <div class="card"><div class="chartbox tall"><canvas id="dayChart"></canvas></div></div>
+    <div class="mini" id="dayChips"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>六、谁用得多、用得好：使用次数 × 查看率</h2><span class="hint">气泡＝点评总数，虚线为使用组平均查看率</span></div>
+    <div class="grid g12">
+      <div class="card"><div class="chartbox xtall"><canvas id="scatterChart"></canvas></div></div>
+      <div class="card">
+        <h2 style="font-size:14px;color:var(--ink2);margin-bottom:10px">使用次数 Top 10</h2>
+        <div class="rank" id="topUses"></div>
+        <h2 style="font-size:14px;color:var(--ink2);margin:20px 0 10px">查看率 Top 5（使用组）</h2>
+        <div class="rank" id="topRate"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>七、教辅明细</h2><span class="hint">点击表头排序 · 支持搜索姓名或AD</span></div>
+    <div class="search"><input type="text" id="q" placeholder="搜索教辅姓名 / AD"><span class="note" id="cnt"></span></div>
+    <div class="tablewrap">
+      <table id="tbl">
+        <thead><tr>
+          <th data-k="name">教辅</th><th data-k="ad">AD</th><th data-k="uses">使用次数</th><th data-k="records">反馈条数</th>
+          <th data-k="students">覆盖学生</th><th data-k="per_use">平均每次条数</th><th data-k="total">点评总数</th>
+          <th data-k="viewed">已查看</th><th data-k="rate">点评查看率</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <b>口径说明</b><br>
+    1. 批量反馈使用次数：同一教辅在同一分钟内（精确到分钟）的全部点评反馈合并计为 1 次。<br>
+    2. 反馈条数：学生维度的点评记录数；覆盖学生数：该教辅去重后的学生数（同一学生跨批次重复只计 1 人）。<br>
+    3. 人均使用次数分母为 10.1-10.20 使用过批量反馈的 76 位教辅；平均每次反馈条数＝反馈条数÷使用次数。<br>
+    4. 点评查看率＝已查看数÷点评总数，按教辅合并所带课程小节；"使用组/未使用组"按 10.1-10.20 是否使用过批量反馈划分。<br>
+    5. 查看率为 8-10 月累计重建口径（8/1-10/14 累计＋10/15-10/21 新增），多项导出拼接，误差约 ±0.4 个百分点。
+  </footer>
 </div>
 
 <script>
-const DATA=[
-{name:"宋杨",use:97,fb:211,stu:211,bsize:2.2,total:4329,viewed:1914,rate:44.2},
-{name:"李泓雪",use:65,fb:217,stu:217,bsize:3.3,total:4767,viewed:1941,rate:40.7},
-{name:"郭子玉",use:62,fb:212,stu:212,bsize:3.4,total:4460,viewed:1977,rate:44.3},
-{name:"褚福子航",use:56,fb:176,stu:176,bsize:3.1,total:4009,viewed:1801,rate:44.9},
-{name:"蔡爱露",use:53,fb:197,stu:197,bsize:3.7,total:4643,viewed:1841,rate:39.7},
-{name:"周钇辰",use:52,fb:187,stu:187,bsize:3.6,total:3833,viewed:1622,rate:42.3},
-{name:"刘君",use:44,fb:219,stu:219,bsize:5.0,total:4541,viewed:1635,rate:36.0},
-{name:"薛加加",use:41,fb:191,stu:191,bsize:4.7,total:4233,viewed:1676,rate:39.6},
-{name:"王菁菁",use:34,fb:201,stu:201,bsize:5.9,total:4496,viewed:1758,rate:39.1},
-{name:"孙鹏",use:25,fb:99,stu:99,bsize:4.0,total:3751,viewed:1265,rate:33.7},
-{name:"张景",use:11,fb:173,stu:173,bsize:15.7,total:3689,viewed:766,rate:20.8},
-{name:"赵娜",use:11,fb:208,stu:208,bsize:18.9,total:4413,viewed:758,rate:17.2},
-{name:"王子鑫",use:8,fb:252,stu:252,bsize:31.5,total:3998,viewed:1589,rate:39.7},
-{name:"段莎莎",use:5,fb:297,stu:297,bsize:59.4,total:4288,viewed:1682,rate:39.2},
-{name:"周宇诺",use:5,fb:11,stu:11,bsize:2.2,total:1422,viewed:470,rate:33.1},
-{name:"王惠贤",use:4,fb:120,stu:120,bsize:30.0,total:3077,viewed:1212,rate:39.4},
-{name:"张燕",use:4,fb:230,stu:230,bsize:57.5,total:4213,viewed:1527,rate:36.2},
-{name:"吴佳雨",use:3,fb:3,stu:3,bsize:1.0,total:2035,viewed:779,rate:38.3},
-{name:"卢瑶",use:2,fb:94,stu:94,bsize:47.0,total:3836,viewed:829,rate:21.6},
-{name:"魏东涵",use:2,fb:13,stu:13,bsize:6.5,total:5096,viewed:1396,rate:27.4},
-{name:"侯新新",use:1,fb:6,stu:6,bsize:6.0,total:3986,viewed:1528,rate:38.3},
-{name:"季思雨",use:1,fb:4,stu:4,bsize:4.0,total:3797,viewed:1403,rate:37.0},
-{name:"李培丽",use:1,fb:1,stu:1,bsize:1.0,total:2395,viewed:879,rate:36.7},
-{name:"师薏涵",use:1,fb:1,stu:1,bsize:1.0,total:1355,viewed:580,rate:42.8},
-{name:"王雅鑫",use:1,fb:14,stu:14,bsize:14.0,total:3766,viewed:1473,rate:39.1}
+const DATA = {"users": 76, "totalAds": 290, "batches": 1165, "records": 11040, "students": 11030, "user": {"total": 266421, "viewed": 91965}, "other": {"total": 647873, "viewed": 229719}, "all": {"total": 914294, "viewed": 321684}, "days": {"2026-10-01": {"records": 3, "batches": 3}, "2026-10-09": {"records": 17, "batches": 3}, "2026-10-11": {"records": 20, "batches": 2}, "2026-10-12": {"records": 2, "batches": 2}, "2026-10-13": {"records": 1524, "batches": 183}, "2026-10-14": {"records": 1843, "batches": 397}, "2026-10-15": {"records": 619, "batches": 61}, "2026-10-16": {"records": 900, "batches": 177}, "2026-10-17": {"records": 5105, "batches": 207}, "2026-10-18": {"records": 121, "batches": 70}, "2026-10-19": {"records": 561, "batches": 34}, "2026-10-20": {"records": 325, "batches": 26}}, "buckets": {"1人": 215, "2–5人": 560, "6–20人": 229, "21–50人": 118, "50人以上": 43}, "batchSizes": [1, 1, 1, 4, 9, 4, 14, 6, 1, 1, 1, 3, 1, 3, 2, 2, 2, 2, 1, 2, 1, 1, 6, 2, 2, 3, 7, 4, 1, 5, 3, 4, 4, 5, 3, 6, 3, 5, 1, 4, 6, 5, 3, 5, 5, 6, 6, 3, 5, 6, 5, 7, 5, 3, 3, 4, 3, 8, 6, 1, 6, 2, 6, 1, 1, 3, 1, 5, 6, 6, 1, 6, 5, 1, 7, 3, 1, 3, 2, 2, 2, 4, 3, 4, 1, 1, 5, 5, 2, 6, 3, 4, 2, 5, 7, 5, 5, 6, 4, 1, 5, 5, 3, 2, 5, 3, 2, 3, 5, 6, 3, 6, 6, 3, 7, 2, 5, 5, 6, 5, 5, 3, 6, 5, 6, 3, 7, 3, 1, 4, 6, 5, 3, 5, 2, 7, 6, 6, 5, 4, 5, 3, 7, 2, 6, 3, 2, 2, 6, 1, 1, 2, 1, 6, 4, 6, 7, 72, 58, 24, 71, 72, 1, 1, 4, 3, 4, 4, 4, 52, 4, 59, 59, 1, 5, 60, 46, 1, 6, 7, 6, 22, 4, 46, 11, 41, 17, 49, 13, 22, 41, 37, 27, 1, 7, 7, 1, 7, 5, 7, 3, 1, 5, 1, 1, 4, 2, 5, 2, 3, 3, 7, 5, 2, 6, 2, 3, 6, 2, 5, 5, 3, 2, 2, 5, 2, 2, 6, 7, 2, 6, 2, 4, 3, 4, 6, 7, 3, 3, 1, 7, 2, 5, 1, 1, 51, 3, 1, 3, 3, 1, 6, 3, 6, 3, 1, 6, 1, 2, 1, 3, 3, 5, 3, 1, 3, 1, 3, 2, 1, 5, 3, 1, 6, 7, 3, 2, 8, 5, 4, 4, 4, 3, 3, 7, 7, 6, 2, 3, 6, 5, 4, 5, 5, 3, 6, 1, 7, 6, 5, 2, 2, 3, 2, 5, 2, 3, 7, 2, 2, 3, 8, 9, 2, 6, 7, 6, 2, 1, 1, 9, 3, 4, 4, 4, 8, 4, 3, 3, 1, 2, 5, 4, 3, 4, 4, 2, 3, 4, 2, 4, 1, 4, 1, 1, 2, 4, 7, 3, 3, 6, 7, 4, 1, 2, 3, 4, 6, 7, 1, 4, 6, 4, 1, 1, 4, 2, 5, 3, 1, 3, 2, 2, 3, 4, 1, 3, 3, 3, 3, 4, 1, 1, 3, 6, 6, 4, 2, 3, 4, 1, 4, 2, 3, 3, 13, 2, 3, 2, 4, 4, 2, 6, 5, 10, 8, 3, 2, 1, 4, 3, 3, 6, 4, 1, 3, 3, 4, 3, 6, 5, 2, 2, 3, 4, 6, 1, 5, 2, 1, 2, 2, 2, 5, 2, 3, 1, 6, 1, 40, 3, 4, 1, 4, 10, 5, 36, 5, 5, 2, 3, 8, 5, 2, 11, 2, 3, 5, 1, 5, 6, 4, 7, 2, 10, 5, 5, 2, 14, 3, 4, 2, 4, 1, 2, 2, 3, 1, 4, 3, 3, 2, 3, 1, 1, 3, 3, 8, 3, 4, 8, 1, 6, 2, 1, 3, 20, 4, 4, 25, 4, 5, 29, 2, 2, 6, 4, 24, 2, 4, 5, 15, 6, 2, 1, 2, 7, 8, 2, 54, 1, 6, 5, 5, 5, 2, 9, 5, 2, 8, 2, 4, 5, 7, 1, 1, 3, 1, 3, 2, 3, 3, 2, 6, 4, 2, 2, 5, 4, 1, 3, 3, 6, 1, 3, 3, 4, 3, 3, 1, 3, 3, 2, 1, 6, 7, 7, 1, 2, 4, 5, 6, 1, 3, 2, 4, 5, 5, 1, 1, 1, 3, 4, 1, 42, 3, 33, 3, 7, 72, 1, 1, 1, 1, 2, 1, 5, 7, 8, 5, 3, 6, 1, 1, 3, 4, 4, 2, 4, 5, 1, 1, 2, 4, 5, 4, 4, 7, 7, 4, 4, 5, 8, 7, 9, 9, 9, 6, 5, 8, 8, 5, 8, 8, 10, 10, 9, 5, 5, 19, 26, 45, 36, 14, 10, 40, 25, 105, 55, 1, 1, 1, 2, 2, 1, 1, 2, 1, 2, 2, 3, 3, 5, 3, 2, 1, 3, 4, 2, 1, 2, 2, 3, 4, 4, 3, 2, 1, 1, 2, 2, 1, 1, 2, 4, 2, 4, 3, 1, 4, 5, 3, 3, 2, 2, 1, 1, 2, 3, 2, 4, 2, 3, 1, 4, 2, 3, 4, 4, 4, 2, 2, 4, 2, 3, 3, 3, 4, 4, 3, 2, 5, 4, 3, 1, 2, 5, 4, 5, 3, 1, 3, 4, 4, 5, 3, 1, 1, 1, 1, 2, 3, 1, 2, 1, 1, 1, 1, 6, 5, 3, 2, 2, 1, 3, 3, 4, 1, 3, 4, 3, 2, 1, 2, 4, 1, 3, 17, 2, 3, 3, 4, 3, 3, 4, 19, 3, 4, 5, 4, 35, 3, 43, 1, 27, 25, 7, 5, 2, 2, 5, 29, 5, 23, 1, 21, 13, 24, 28, 20, 63, 1, 3, 3, 2, 3, 4, 2, 27, 26, 30, 1, 1, 1, 2, 2, 4, 4, 4, 4, 3, 3, 1, 4, 5, 4, 2, 1, 1, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 2, 3, 2, 3, 3, 3, 3, 3, 3, 3, 4, 3, 1, 1, 1, 1, 1, 1, 33, 23, 61, 36, 30, 9, 44, 26, 16, 3, 18, 20, 14, 4, 6, 86, 6, 1, 16, 39, 69, 1, 40, 60, 43, 40, 10, 38, 76, 46, 53, 4, 41, 5, 76, 4, 42, 43, 32, 9, 9, 19, 10, 3, 30, 76, 12, 10, 5, 1, 38, 27, 4, 2, 7, 6, 43, 1, 119, 3, 19, 81, 75, 15, 9, 34, 8, 36, 8, 9, 7, 36, 46, 29, 27, 33, 19, 45, 25, 28, 98, 32, 17, 27, 23, 26, 5, 32, 70, 7, 9, 59, 21, 8, 30, 64, 25, 30, 10, 22, 2, 32, 34, 34, 33, 7, 32, 38, 24, 35, 76, 12, 14, 49, 27, 4, 32, 17, 63, 26, 47, 43, 40, 11, 8, 36, 36, 27, 16, 68, 20, 29, 40, 67, 8, 17, 34, 20, 38, 28, 34, 32, 7, 32, 4, 20, 27, 26, 10, 49, 43, 25, 11, 16, 3, 10, 10, 2, 1, 29, 24, 31, 66, 60, 3, 3, 1, 1, 2, 63, 6, 13, 47, 48, 85, 77, 1, 53, 1, 1, 1, 2, 1, 2, 1, 1, 1, 2, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 3, 2, 2, 2, 1, 1, 1, 2, 1, 1, 2, 2, 2, 1, 1, 1, 2, 3, 2, 1, 3, 2, 5, 2, 2, 1, 6, 5, 4, 1, 1, 1, 1, 1, 2, 4, 1, 1, 2, 2, 2, 2, 3, 2, 1, 1, 1, 1, 10, 8, 25, 16, 17, 1, 1, 1, 1, 3, 1, 1, 1, 1, 8, 5, 9, 13, 4, 16, 14, 8, 21, 92, 54, 51, 84, 15, 24, 10, 20, 24, 1, 2, 1, 1, 1, 1, 10, 6, 10, 18, 10, 24, 9, 48, 5, 24, 8, 11, 20, 10, 19, 27, 12, 18, 15, 14], "grades": [{"g": "一年级", "total": 30499, "viewed": 7004, "rate": 0.2296468736679891, "ads": 13, "userAds": 2, "lessons": 83}, {"g": "二年级", "total": 115413, "viewed": 27282, "rate": 0.23638584908112603, "ads": 41, "userAds": 13, "lessons": 86}, {"g": "三年级", "total": 243103, "viewed": 86844, "rate": 0.3572312970222498, "ads": 73, "userAds": 29, "lessons": 86}, {"g": "四年级", "total": 304689, "viewed": 110085, "rate": 0.361302836662958, "ads": 78, "userAds": 26, "lessons": 86}, {"g": "五年级", "total": 88401, "viewed": 34074, "rate": 0.38544812841483694, "ads": 42, "userAds": 8, "lessons": 43}, {"g": "六年级", "total": 67057, "viewed": 30806, "rate": 0.45940021176014434, "ads": 30, "userAds": 2, "lessons": 27}, {"g": "七年级", "total": 41052, "viewed": 18296, "rate": 0.4456786514664328, "ads": 18, "userAds": 0, "lessons": 8}, {"g": "八年级", "total": 23932, "viewed": 7269, "rate": 0.30373558415510615, "ads": 10, "userAds": 0, "lessons": 8}, {"g": "测试/磨课", "total": 148, "viewed": 24, "rate": 0.16216216216216217, "ads": 4, "userAds": 1, "lessons": 33}], "userBands": {"≥50%": 0, "40–50%": 9, "30–40%": 52, "20–30%": 9, "<20%": 6}, "otherBands": {"≥50%": 4, "40–50%": 55, "30–40%": 110, "20–30%": 39, "<20%": 6}, "userDetail": [{"ad": "songyang3", "name": "宋杨", "uses": 97, "records": 211, "students": 211, "total": 4783, "viewed": 2083, "rate": 0.43550073175831067, "per_use": 2.1752577319587627, "grades": ["三年级"]}, {"ad": "zhengyue", "name": "郑越", "uses": 82, "records": 253, "students": 253, "total": 3220, "viewed": 1045, "rate": 0.3245341614906832, "per_use": 3.0853658536585367, "grades": ["三年级"]}, {"ad": "lihongxue", "name": "李泓雪", "uses": 65, "records": 217, "students": 217, "total": 5012, "viewed": 2065, "rate": 0.41201117318435754, "per_use": 3.3384615384615386, "grades": ["三年级"]}, {"ad": "zhouyunuo", "name": "周宇诺", "uses": 62, "records": 108, "students": 102, "total": 1768, "viewed": 603, "rate": 0.3410633484162896, "per_use": 1.7419354838709677, "grades": ["四年级"]}, {"ad": "guoziyu", "name": "郭子玉", "uses": 62, "records": 212, "students": 212, "total": 4905, "viewed": 2119, "rate": 0.43200815494393474, "per_use": 3.4193548387096775, "grades": ["三年级"]}, {"ad": "chufuzihang", "name": "褚福子航", "uses": 56, "records": 176, "students": 176, "total": 4219, "viewed": 1916, "rate": 0.4541360511969661, "per_use": 3.142857142857143, "grades": ["三年级"]}, {"ad": "caiailu", "name": "蔡爱露", "uses": 53, "records": 197, "students": 197, "total": 4968, "viewed": 1968, "rate": 0.3961352657004831, "per_use": 3.7169811320754715, "grades": ["三年级"]}, {"ad": "zhouyichen", "name": "周钇辰", "uses": 52, "records": 187, "students": 187, "total": 4111, "viewed": 1715, "rate": 0.41717343711992216, "per_use": 3.5961538461538463, "grades": ["三年级"]}, {"ad": "zhanghan4", "name": "张涵", "uses": 48, "records": 252, "students": 252, "total": 3108, "viewed": 949, "rate": 0.3053410553410553, "per_use": 5.25, "grades": ["三年级"]}, {"ad": "lipengyi", "name": "李芃漪", "uses": 45, "records": 253, "students": 253, "total": 530, "viewed": 203, "rate": 0.38301886792452833, "per_use": 5.622222222222222, "grades": ["三年级"]}, {"ad": "liujun", "name": "刘君", "uses": 44, "records": 219, "students": 219, "total": 4876, "viewed": 1754, "rate": 0.35972108285479903, "per_use": 4.9772727272727275, "grades": ["三年级"]}, {"ad": "zhanghao03", "name": "张皓", "uses": 42, "records": 221, "students": 221, "total": 2750, "viewed": 1035, "rate": 0.37636363636363634, "per_use": 5.261904761904762, "grades": ["三年级", "五年级"]}, {"ad": "xuejiajia", "name": "薛加加", "uses": 41, "records": 191, "students": 191, "total": 4475, "viewed": 1783, "rate": 0.39843575418994415, "per_use": 4.658536585365853, "grades": ["三年级"]}, {"ad": "wangjingjing", "name": "王菁菁", "uses": 34, "records": 201, "students": 201, "total": 4736, "viewed": 1871, "rate": 0.3950591216216216, "per_use": 5.911764705882353, "grades": ["三年级"]}, {"ad": "wangyini", "name": "王怡倪", "uses": 31, "records": 206, "students": 206, "total": 440, "viewed": 146, "rate": 0.33181818181818185, "per_use": 6.645161290322581, "grades": ["三年级"]}, {"ad": "sunpeng1", "name": "孙鹏", "uses": 25, "records": 99, "students": 99, "total": 3965, "viewed": 1333, "rate": 0.33619167717528375, "per_use": 3.96, "grades": ["三年级"]}, {"ad": "zhangpenglai", "name": "张鹏来", "uses": 18, "records": 40, "students": 40, "total": 2582, "viewed": 1025, "rate": 0.3969790859798606, "per_use": 2.2222222222222223, "grades": ["五年级"]}, {"ad": "fengchuhan", "name": "冯楚涵", "uses": 16, "records": 214, "students": 214, "total": 601, "viewed": 205, "rate": 0.3410981697171381, "per_use": 13.375, "grades": ["三年级"]}, {"ad": "zhangliyuan", "name": "张丽媛", "uses": 11, "records": 263, "students": 263, "total": 4235, "viewed": 880, "rate": 0.2077922077922078, "per_use": 23.90909090909091, "grades": ["二年级"]}, {"ad": "zhangjing6", "name": "张景", "uses": 11, "records": 173, "students": 173, "total": 4174, "viewed": 845, "rate": 0.2024436990896023, "per_use": 15.727272727272727, "grades": ["二年级"]}, {"ad": "zhaona1", "name": "赵娜", "uses": 11, "records": 208, "students": 208, "total": 4934, "viewed": 826, "rate": 0.1674098094852047, "per_use": 18.90909090909091, "grades": ["二年级"]}, {"ad": "zhaoyuhai", "name": "赵玉海", "uses": 11, "records": 214, "students": 214, "total": 3126, "viewed": 800, "rate": 0.2559181062060141, "per_use": 19.454545454545453, "grades": ["二年级", "六年级"]}, {"ad": "xunuo1", "name": "徐诺", "uses": 10, "records": 72, "students": 72, "total": 136, "viewed": 44, "rate": 0.3235294117647059, "per_use": 7.2, "grades": ["五年级"]}, {"ad": "zhangtianyu", "name": "张天雨", "uses": 9, "records": 231, "students": 231, "total": 3871, "viewed": 1268, "rate": 0.32756393696719194, "per_use": 25.666666666666668, "grades": ["四年级"]}, {"ad": "zhangwenhui1", "name": "张文慧", "uses": 9, "records": 121, "students": 121, "total": 3394, "viewed": 1275, "rate": 0.37566293459045375, "per_use": 13.444444444444445, "grades": ["四年级"]}, {"ad": "wangyingyan", "name": "王英燕", "uses": 8, "records": 209, "students": 209, "total": 438, "viewed": 132, "rate": 0.3013698630136986, "per_use": 26.125, "grades": ["三年级"]}, {"ad": "tengyueshan", "name": "滕悦杉", "uses": 8, "records": 254, "students": 254, "total": 2899, "viewed": 1001, "rate": 0.3452914798206278, "per_use": 31.75, "grades": ["三年级"]}, {"ad": "yangyang5", "name": "杨洋", "uses": 8, "records": 190, "students": 190, "total": 4609, "viewed": 883, "rate": 0.19158168800173572, "per_use": 23.75, "grades": ["二年级"]}, {"ad": "wangzijiao", "name": "王子娇", "uses": 8, "records": 153, "students": 153, "total": 4672, "viewed": 1794, "rate": 0.3839897260273973, "per_use": 19.125, "grades": ["四年级"]}, {"ad": "wangzixin", "name": "王子鑫", "uses": 8, "records": 252, "students": 252, "total": 4557, "viewed": 1750, "rate": 0.38402457757296465, "per_use": 31.5, "grades": ["三年级"]}, {"ad": "liuyijing", "name": "刘一婧", "uses": 8, "records": 147, "students": 147, "total": 2415, "viewed": 464, "rate": 0.19213250517598343, "per_use": 18.375, "grades": ["一年级"]}, {"ad": "guoxiaoying", "name": "郭孝颖", "uses": 8, "records": 184, "students": 184, "total": 4504, "viewed": 1594, "rate": 0.3539076376554174, "per_use": 23.0, "grades": ["四年级"]}, {"ad": "jisiyu", "name": "季思雨", "uses": 7, "records": 156, "students": 154, "total": 4281, "viewed": 1511, "rate": 0.3529549170754497, "per_use": 22.285714285714285, "grades": ["四年级"]}, {"ad": "liuyue9", "name": "刘玥", "uses": 7, "records": 160, "students": 160, "total": 4451, "viewed": 1772, "rate": 0.3981127836441249, "per_use": 22.857142857142858, "grades": ["四年级"]}, {"ad": "wangxianghan", "name": "王相涵", "uses": 7, "records": 9, "students": 9, "total": 404, "viewed": 125, "rate": 0.3094059405940594, "per_use": 1.2857142857142858, "grades": ["四年级"]}, {"ad": "wangyao", "name": "王瑶", "uses": 7, "records": 277, "students": 277, "total": 4726, "viewed": 1745, "rate": 0.3692340245450698, "per_use": 39.57142857142857, "grades": ["四年级"]}, {"ad": "wangnan3", "name": "王楠", "uses": 6, "records": 287, "students": 287, "total": 4961, "viewed": 1961, "rate": 0.3952832090304374, "per_use": 47.833333333333336, "grades": ["四年级"]}, {"ad": "wangmin1", "name": "王敏", "uses": 6, "records": 191, "students": 191, "total": 4518, "viewed": 1787, "rate": 0.39552899513058876, "per_use": 31.833333333333332, "grades": ["四年级"]}, {"ad": "moutingting", "name": "牟婷婷", "uses": 6, "records": 146, "students": 146, "total": 4141, "viewed": 1393, "rate": 0.33639217580294617, "per_use": 24.333333333333332, "grades": ["四年级"]}, {"ad": "zhangzhen01", "name": "张桢", "uses": 6, "records": 244, "students": 244, "total": 2483, "viewed": 784, "rate": 0.3157470801449859, "per_use": 40.666666666666664, "grades": ["三年级"]}, {"ad": "xudongying", "name": "徐冬颖", "uses": 6, "records": 263, "students": 263, "total": 3332, "viewed": 1054, "rate": 0.3163265306122449, "per_use": 43.833333333333336, "grades": ["三年级"]}, {"ad": "liuxuan", "name": "刘璇", "uses": 6, "records": 264, "students": 264, "total": 2786, "viewed": 1083, "rate": 0.3887293610911701, "per_use": 44.0, "grades": ["三年级"]}, {"ad": "liqi1", "name": "李琪", "uses": 6, "records": 103, "students": 103, "total": 2737, "viewed": 722, "rate": 0.2637924735111436, "per_use": 17.166666666666668, "grades": ["二年级", "五年级"]}, {"ad": "zongsiqi", "name": "宗思琦", "uses": 5, "records": 153, "students": 153, "total": 4337, "viewed": 1683, "rate": 0.3880562600876182, "per_use": 30.6, "grades": ["四年级"]}, {"ad": "xiayuexing", "name": "夏月星", "uses": 5, "records": 184, "students": 184, "total": 4371, "viewed": 1803, "rate": 0.4124914207275223, "per_use": 36.8, "grades": ["四年级"]}, {"ad": "pansaiming", "name": "潘赛明", "uses": 5, "records": 184, "students": 184, "total": 4809, "viewed": 1810, "rate": 0.3763776252859222, "per_use": 36.8, "grades": ["四年级"]}, {"ad": "wumin", "name": "吴敏", "uses": 5, "records": 76, "students": 76, "total": 2544, "viewed": 1227, "rate": 0.482311320754717, "per_use": 15.2, "grades": ["六年级"]}, {"ad": "duanshasha", "name": "段莎莎", "uses": 5, "records": 297, "students": 297, "total": 4862, "viewed": 1846, "rate": 0.37967914438502676, "per_use": 59.4, "grades": ["三年级"]}, {"ad": "zhangziyi", "name": "张子怡", "uses": 4, "records": 169, "students": 169, "total": 4257, "viewed": 1633, "rate": 0.38360347662673244, "per_use": 42.25, "grades": ["四年级"]}, {"ad": "hezhiying", "name": "贺芝莹", "uses": 4, "records": 88, "students": 88, "total": 2415, "viewed": 949, "rate": 0.3929606625258799, "per_use": 22.0, "grades": ["五年级"]}, {"ad": "fenglanxin", "name": "冯兰欣", "uses": 4, "records": 107, "students": 107, "total": 2557, "viewed": 972, "rate": 0.38013296832225263, "per_use": 26.75, "grades": ["五年级"]}, {"ad": "xushuqi", "name": "徐舒琪", "uses": 4, "records": 168, "students": 168, "total": 4732, "viewed": 1844, "rate": 0.389687235841082, "per_use": 42.0, "grades": ["四年级"]}, {"ad": "xiujunqi", "name": "修俊琪", "uses": 4, "records": 86, "students": 86, "total": 2415, "viewed": 866, "rate": 0.35859213250517596, "per_use": 21.5, "grades": ["五年级"]}, {"ad": "zhangyan02", "name": "张燕", "uses": 4, "records": 230, "students": 230, "total": 4814, "viewed": 1662, "rate": 0.3452430411300374, "per_use": 57.5, "grades": ["三年级"]}, {"ad": "wanghuixian", "name": "王惠贤", "uses": 4, "records": 120, "students": 120, "total": 3526, "viewed": 1318, "rate": 0.37379466817923995, "per_use": 30.0, "grades": ["三年级"]}, {"ad": "yangrunmiao", "name": "杨润淼", "uses": 4, "records": 149, "students": 149, "total": 4394, "viewed": 1780, "rate": 0.4050978607191625, "per_use": 37.25, "grades": ["四年级"]}, {"ad": "limeijiao", "name": "李美娇", "uses": 4, "records": 195, "students": 195, "total": 4385, "viewed": 896, "rate": 0.20433295324971493, "per_use": 48.75, "grades": ["二年级"]}, {"ad": "wujiayu", "name": "吴佳雨", "uses": 3, "records": 3, "students": 3, "total": 2266, "viewed": 836, "rate": 0.36893203883495146, "per_use": 1.0, "grades": ["三年级"]}, {"ad": "litengjiao", "name": "李腾蛟", "uses": 3, "records": 23, "students": 23, "total": 4018, "viewed": 1353, "rate": 0.336734693877551, "per_use": 7.666666666666667, "grades": ["四年级"]}, {"ad": "luyao", "name": "卢瑶", "uses": 3, "records": 166, "students": 166, "total": 4278, "viewed": 906, "rate": 0.211781206171108, "per_use": 55.333333333333336, "grades": ["二年级"]}, {"ad": "liangqun", "name": "梁群", "uses": 3, "records": 111, "students": 111, "total": 2596, "viewed": 1127, "rate": 0.43412942989214176, "per_use": 37.0, "grades": ["五年级"]}, {"ad": "guoshuya", "name": "郭姝雅", "uses": 3, "records": 168, "students": 168, "total": 4264, "viewed": 1611, "rate": 0.3778142589118199, "per_use": 56.0, "grades": ["四年级"]}, {"ad": "lipeili", "name": "李培丽", "uses": 2, "records": 2, "students": 1, "total": 2894, "viewed": 1053, "rate": 0.36385625431928126, "per_use": 1.0, "grades": ["三年级"]}, {"ad": "luyalin", "name": "陆雅琳", "uses": 2, "records": 2, "students": 2, "total": 481, "viewed": 113, "rate": 0.23492723492723494, "per_use": 1.0, "grades": ["二年级"]}, {"ad": "marui", "name": "马瑞", "uses": 2, "records": 2, "students": 1, "total": 4867, "viewed": 1475, "rate": 0.303061434148346, "per_use": 1.0, "grades": ["四年级"]}, {"ad": "weidonghan", "name": "魏东涵", "uses": 2, "records": 13, "students": 13, "total": 5523, "viewed": 1509, "rate": 0.27322107550244434, "per_use": 6.5, "grades": ["一年级", "二年级"]}, {"ad": "huxiaoxiao", "name": "胡晓晓", "uses": 1, "records": 11, "students": 11, "total": 4414, "viewed": 1619, "rate": 0.366787494336203, "per_use": 11.0, "grades": ["四年级"]}, {"ad": "shenxuyan", "name": "沈叙言", "uses": 1, "records": 1, "students": 1, "total": 2977, "viewed": 735, "rate": 0.24689284514612025, "per_use": 1.0, "grades": ["二年级", "四年级"]}, {"ad": "houxinxin", "name": "侯新新", "uses": 1, "records": 6, "students": 6, "total": 4383, "viewed": 1632, "rate": 0.3723477070499658, "per_use": 6.0, "grades": ["四年级"]}, {"ad": "songyue", "name": "宋悦", "uses": 1, "records": 3, "students": 3, "total": 4389, "viewed": 1680, "rate": 0.3827751196172249, "per_use": 3.0, "grades": ["四年级"]}, {"ad": "yangshuqing", "name": "杨舒晴", "uses": 1, "records": 43, "students": 43, "total": 4283, "viewed": 795, "rate": 0.1856175577865982, "per_use": 43.0, "grades": ["二年级"]}, {"ad": "lishengli", "name": "李胜利-测试", "uses": 1, "records": 1, "students": 1, "total": 32, "viewed": 3, "rate": 0.09375, "per_use": 1.0, "grades": ["测试/磨课"]}, {"ad": "wangyaxin02", "name": "王雅鑫", "uses": 1, "records": 14, "students": 14, "total": 4277, "viewed": 1615, "rate": 0.37760112228197334, "per_use": 14.0, "grades": ["四年级"]}, {"ad": "shiyihan", "name": "师薏涵", "uses": 1, "records": 1, "students": 1, "total": 1804, "viewed": 703, "rate": 0.389689578713969, "per_use": 1.0, "grades": ["三年级"]}, {"ad": "liuyan1", "name": "刘雁", "uses": 1, "records": 1, "students": 1, "total": 1991, "viewed": 723, "rate": 0.36313410346559516, "per_use": 1.0, "grades": ["三年级"]}, {"ad": "haowenjing", "name": "郝文静", "uses": 1, "records": 35, "students": 35, "total": 4433, "viewed": 877, "rate": 0.19783442364087525, "per_use": 35.0, "grades": ["二年级"]}], "otherDetail": [{"ad": "liqian3", "name": "李倩", "total": 6447, "viewed": 1552, "rate": 0.24073212346827982, "lessons": 21}, {"ad": "lile", "name": "李乐", "total": 6020, "viewed": 1852, "rate": 0.30764119601328904, "lessons": 17}, {"ad": "liushuang2", "name": "刘爽", "total": 6011, "viewed": 2197, "rate": 0.3654965895857594, "lessons": 17}, {"ad": "gaohang01", "name": "高航", "total": 5379, "viewed": 1890, "rate": 0.3513664249860569, "lessons": 26}, {"ad": "cuizixin", "name": "崔子鑫", "total": 5224, "viewed": 1561, "rate": 0.29881316998468604, "lessons": 26}, {"ad": "weiyafang", "name": "魏雅芳", "total": 5136, "viewed": 2039, "rate": 0.39700155763239875, "lessons": 16}, {"ad": "guanxin", "name": "关鑫", "total": 5134, "viewed": 1962, "rate": 0.38215816127775615, "lessons": 17}, {"ad": "zhangxue6", "name": "张雪", "total": 5134, "viewed": 1778, "rate": 0.34631865991429683, "lessons": 21}, {"ad": "limeiling", "name": "李美玲", "total": 5091, "viewed": 1852, "rate": 0.36377921822824594, "lessons": 17}, {"ad": "linxue", "name": "林雪", "total": 5067, "viewed": 1950, "rate": 0.3848431024274719, "lessons": 16}, {"ad": "fuxinru", "name": "付新茹", "total": 5064, "viewed": 1837, "rate": 0.36275671406003157, "lessons": 22}, {"ad": "nizhisong", "name": "倪智松", "total": 5030, "viewed": 1968, "rate": 0.3912524850894632, "lessons": 16}, {"ad": "lijiaojiao", "name": "李姣姣", "total": 5029, "viewed": 1702, "rate": 0.33843706502286736, "lessons": 17}, {"ad": "jinjing", "name": "金静", "total": 5006, "viewed": 1799, "rate": 0.35936875749101077, "lessons": 16}, {"ad": "guoyitong", "name": "郭奕彤", "total": 4996, "viewed": 1700, "rate": 0.3402722177742194, "lessons": 21}, {"ad": "zhangmeng3", "name": "张萌", "total": 4986, "viewed": 1920, "rate": 0.3850782190132371, "lessons": 17}, {"ad": "hanzeyuan", "name": "韩泽原", "total": 4952, "viewed": 1870, "rate": 0.37762520193861066, "lessons": 22}, {"ad": "shenyinxue", "name": "沈银雪", "total": 4949, "viewed": 1855, "rate": 0.37482319660537483, "lessons": 16}, {"ad": "yuanxingzu", "name": "袁兴祖", "total": 4932, "viewed": 1779, "rate": 0.36070559610705594, "lessons": 17}, {"ad": "changliqun", "name": "常立群", "total": 4922, "viewed": 1980, "rate": 0.4022754977651361, "lessons": 17}, {"ad": "libing2", "name": "李冰", "total": 4918, "viewed": 1921, "rate": 0.3906059373729158, "lessons": 16}, {"ad": "wangzifeng", "name": "王子丰", "total": 4917, "viewed": 1746, "rate": 0.35509456985967053, "lessons": 16}, {"ad": "geziwei", "name": "葛子玮", "total": 4917, "viewed": 1705, "rate": 0.34675615212527966, "lessons": 16}, {"ad": "mashuang1", "name": "马爽", "total": 4914, "viewed": 1729, "rate": 0.35185185185185186, "lessons": 17}, {"ad": "lidanyang", "name": "李丹阳", "total": 4901, "viewed": 1893, "rate": 0.38624770455009183, "lessons": 16}, {"ad": "sunzhen", "name": "孙振", "total": 4896, "viewed": 1649, "rate": 0.3368055555555556, "lessons": 16}, {"ad": "wangaiming", "name": "王艾明", "total": 4864, "viewed": 1643, "rate": 0.3377878289473684, "lessons": 21}, {"ad": "wangbo4", "name": "王博", "total": 4864, "viewed": 1746, "rate": 0.3589638157894737, "lessons": 16}, {"ad": "zhaoshuqi", "name": "赵书琪", "total": 4858, "viewed": 1870, "rate": 0.38493207081103337, "lessons": 16}, {"ad": "dingfang", "name": "丁芳", "total": 4832, "viewed": 1557, "rate": 0.322226821192053, "lessons": 17}, {"ad": "wanghongwei", "name": "王宏伟", "total": 4818, "viewed": 1632, "rate": 0.33872976338729766, "lessons": 17}, {"ad": "changxiaojing", "name": "唱晓静", "total": 4808, "viewed": 1635, "rate": 0.3400582362728785, "lessons": 16}, {"ad": "liujia4", "name": "刘佳", "total": 4801, "viewed": 1791, "rate": 0.37304728181628827, "lessons": 16}, {"ad": "bailinxue", "name": "白琳雪", "total": 4778, "viewed": 1562, "rate": 0.32691502720803683, "lessons": 16}, {"ad": "baihaodong", "name": "白皓东", "total": 4777, "viewed": 1443, "rate": 0.3020724303956458, "lessons": 17}, {"ad": "lican1", "name": "李璨", "total": 4770, "viewed": 1685, "rate": 0.3532494758909853, "lessons": 16}, {"ad": "luoxuanpei", "name": "罗铉沛", "total": 4763, "viewed": 1586, "rate": 0.3329834138148226, "lessons": 22}, {"ad": "limeng2", "name": "李猛", "total": 4733, "viewed": 1718, "rate": 0.3629833086837101, "lessons": 16}, {"ad": "shiyangyang", "name": "史洋洋", "total": 4714, "viewed": 1830, "rate": 0.38820534577853205, "lessons": 16}, {"ad": "wangjiangpei", "name": "王江培", "total": 4697, "viewed": 1687, "rate": 0.3591654247391952, "lessons": 16}, {"ad": "shanghaimeng", "name": "商海萌", "total": 4695, "viewed": 1678, "rate": 0.3574014909478168, "lessons": 16}, {"ad": "zhenghaoyang", "name": "郑浩阳", "total": 4671, "viewed": 1389, "rate": 0.29736673089274246, "lessons": 21}, {"ad": "guyumei", "name": "顾玉梅", "total": 4648, "viewed": 1562, "rate": 0.3360585197934596, "lessons": 16}, {"ad": "pengchengyuan1", "name": "彭程远", "total": 4643, "viewed": 1601, "rate": 0.3448201593797114, "lessons": 16}, {"ad": "luoyue", "name": "罗月", "total": 4583, "viewed": 1376, "rate": 0.30024001745581497, "lessons": 21}, {"ad": "shishijie", "name": "史士杰", "total": 4583, "viewed": 1107, "rate": 0.24154483962469997, "lessons": 22}, {"ad": "luligang", "name": "卢力纲", "total": 4579, "viewed": 1356, "rate": 0.29613452718934263, "lessons": 16}, {"ad": "zhanghui6", "name": "张慧", "total": 4546, "viewed": 1405, "rate": 0.30906291245050593, "lessons": 17}, {"ad": "yangchaoyang", "name": "杨朝阳", "total": 4511, "viewed": 1402, "rate": 0.31079583240966524, "lessons": 16}, {"ad": "lvjun", "name": "吕俊", "total": 4506, "viewed": 1561, "rate": 0.3464269862405681, "lessons": 17}, {"ad": "fanzhihui", "name": "范智慧", "total": 4483, "viewed": 1635, "rate": 0.3647111309391033, "lessons": 16}, {"ad": "chenhuilei", "name": "陈慧磊", "total": 4462, "viewed": 1676, "rate": 0.37561631555356345, "lessons": 16}, {"ad": "xuwenbo", "name": "徐文博", "total": 4416, "viewed": 1771, "rate": 0.4010416666666667, "lessons": 16}, {"ad": "hanxuelian", "name": "韩雪莲", "total": 4326, "viewed": 1544, "rate": 0.356911696717522, "lessons": 17}, {"ad": "guowenjing1", "name": "郭文静", "total": 4288, "viewed": 1616, "rate": 0.376865671641791, "lessons": 21}, {"ad": "qiunan", "name": "仇楠", "total": 4166, "viewed": 1389, "rate": 0.33341334613538165, "lessons": 17}, {"ad": "zengniaoniao", "name": "曾袅袅", "total": 4070, "viewed": 1278, "rate": 0.314004914004914, "lessons": 8}, {"ad": "weipingping", "name": "魏平平", "total": 4023, "viewed": 1594, "rate": 0.39622172508078546, "lessons": 22}, {"ad": "xingxiaoli", "name": "邢晓丽", "total": 3874, "viewed": 1467, "rate": 0.37867836861125453, "lessons": 8}, {"ad": "liushaoxia", "name": "刘少霞", "total": 3822, "viewed": 707, "rate": 0.184981684981685, "lessons": 17}, {"ad": "chengxinyu", "name": "成鑫宇", "total": 3815, "viewed": 943, "rate": 0.2471821756225426, "lessons": 22}, {"ad": "liucancan", "name": "刘灿灿", "total": 3809, "viewed": 1346, "rate": 0.3533735888684694, "lessons": 17}, {"ad": "zhousijia", "name": "周思佳", "total": 3808, "viewed": 781, "rate": 0.20509453781512604, "lessons": 17}, {"ad": "xuwenhua", "name": "徐文华", "total": 3780, "viewed": 1421, "rate": 0.37592592592592594, "lessons": 17}, {"ad": "zhaoyanhong", "name": "赵艳宏", "total": 3705, "viewed": 795, "rate": 0.2145748987854251, "lessons": 17}, {"ad": "wangjin", "name": "王琎", "total": 3651, "viewed": 1159, "rate": 0.317447274719255, "lessons": 17}, {"ad": "zhoumeihua", "name": "周美华", "total": 3641, "viewed": 1012, "rate": 0.27794561933534745, "lessons": 16}, {"ad": "hongyi", "name": "洪艺", "total": 3592, "viewed": 1301, "rate": 0.36219376391982183, "lessons": 17}, {"ad": "shangyingqi", "name": "尚英奇", "total": 3582, "viewed": 1154, "rate": 0.3221663874930207, "lessons": 17}, {"ad": "yinjing", "name": "尹静", "total": 3547, "viewed": 1427, "rate": 0.4023118127995489, "lessons": 21}, {"ad": "liuyanjun", "name": "刘妍君", "total": 3356, "viewed": 1206, "rate": 0.3593563766388558, "lessons": 17}, {"ad": "lixuan01", "name": "李璇", "total": 3268, "viewed": 736, "rate": 0.2252141982864137, "lessons": 14}, {"ad": "zhanghan1", "name": "张含", "total": 3251, "viewed": 1030, "rate": 0.3168255921254998, "lessons": 17}, {"ad": "wangminhui", "name": "王敏慧", "total": 3209, "viewed": 729, "rate": 0.22717357432221877, "lessons": 15}, {"ad": "mayanchun", "name": "马艳春", "total": 3180, "viewed": 706, "rate": 0.2220125786163522, "lessons": 15}, {"ad": "zhaoxiaodie", "name": "赵晓蝶", "total": 3176, "viewed": 690, "rate": 0.2172544080604534, "lessons": 13}, {"ad": "lijingning", "name": "李敬宁", "total": 3142, "viewed": 1107, "rate": 0.35232336091661365, "lessons": 17}, {"ad": "wuqian1", "name": "吴倩", "total": 3099, "viewed": 668, "rate": 0.2155534043239755, "lessons": 16}, {"ad": "lihanting", "name": "李韩汀", "total": 3077, "viewed": 972, "rate": 0.31589210269743256, "lessons": 13}, {"ad": "lanqi", "name": "兰琦", "total": 3063, "viewed": 880, "rate": 0.28730003264773096, "lessons": 14}, {"ad": "hanlulu", "name": "韩璐璐", "total": 3036, "viewed": 683, "rate": 0.22496706192358365, "lessons": 13}, {"ad": "liwenxiu", "name": "李文秀", "total": 3032, "viewed": 1147, "rate": 0.3782981530343008, "lessons": 8}, {"ad": "luochen", "name": "罗臣", "total": 3029, "viewed": 1098, "rate": 0.362495873225487, "lessons": 13}, {"ad": "yangjing03", "name": "杨静", "total": 2984, "viewed": 994, "rate": 0.3331099195710456, "lessons": 14}, {"ad": "fengyining", "name": "冯以苧", "total": 2971, "viewed": 904, "rate": 0.3042746549983171, "lessons": 13}, {"ad": "zhangda", "name": "张达", "total": 2953, "viewed": 806, "rate": 0.27294277006434137, "lessons": 13}, {"ad": "wangying102", "name": "王营", "total": 2951, "viewed": 898, "rate": 0.304303625889529, "lessons": 17}, {"ad": "xiehaodong", "name": "谢昊东", "total": 2938, "viewed": 1242, "rate": 0.4227365554799183, "lessons": 8}, {"ad": "weiyu", "name": "蔚宇", "total": 2923, "viewed": 774, "rate": 0.2647964420116319, "lessons": 17}, {"ad": "lina7", "name": "李娜", "total": 2919, "viewed": 693, "rate": 0.23741007194244604, "lessons": 16}, {"ad": "zhanglanyu", "name": "张蓝予", "total": 2913, "viewed": 1007, "rate": 0.3456917267421902, "lessons": 17}, {"ad": "wangqinyan", "name": "王琴艳", "total": 2875, "viewed": 659, "rate": 0.22921739130434782, "lessons": 13}, {"ad": "majun", "name": "马骏", "total": 2862, "viewed": 1040, "rate": 0.363382250174703, "lessons": 14}, {"ad": "liying05", "name": "李莹", "total": 2846, "viewed": 898, "rate": 0.3155305692199578, "lessons": 13}, {"ad": "shixiaofang", "name": "石小芳", "total": 2806, "viewed": 891, "rate": 0.31753385602280826, "lessons": 8}, {"ad": "renyuanxin", "name": "任远新", "total": 2748, "viewed": 1067, "rate": 0.38828238719068414, "lessons": 13}, {"ad": "liwen1", "name": "李雯", "total": 2729, "viewed": 705, "rate": 0.25833638695492855, "lessons": 13}, {"ad": "gaofeng", "name": "高峰", "total": 2711, "viewed": 1247, "rate": 0.4599778679454076, "lessons": 8}, {"ad": "liupeipei", "name": "刘佩佩", "total": 2708, "viewed": 860, "rate": 0.3175775480059084, "lessons": 13}, {"ad": "limiaomiao2", "name": "李苗苗", "total": 2707, "viewed": 972, "rate": 0.3590690801625416, "lessons": 13}, {"ad": "yujinqiu", "name": "俞金秋", "total": 2697, "viewed": 873, "rate": 0.3236929922135706, "lessons": 8}, {"ad": "shilei1", "name": "石磊", "total": 2694, "viewed": 912, "rate": 0.33853006681514475, "lessons": 13}, {"ad": "zhangshan", "name": "张珊", "total": 2694, "viewed": 863, "rate": 0.32034149962880476, "lessons": 15}, {"ad": "lushangjing", "name": "路尚婧", "total": 2649, "viewed": 900, "rate": 0.33975084937712347, "lessons": 14}, {"ad": "guoyan1", "name": "郭妍", "total": 2647, "viewed": 769, "rate": 0.29051756705704573, "lessons": 17}, {"ad": "zhaiyuru", "name": "翟羽茹", "total": 2645, "viewed": 1107, "rate": 0.4185255198487713, "lessons": 11}, {"ad": "wangxin01", "name": "王鑫", "total": 2638, "viewed": 993, "rate": 0.3764215314632297, "lessons": 8}, {"ad": "licong", "name": "栗聪", "total": 2634, "viewed": 1065, "rate": 0.4043280182232346, "lessons": 13}, {"ad": "raocongmin", "name": "饶从敏", "total": 2615, "viewed": 999, "rate": 0.38202676864244745, "lessons": 8}, {"ad": "tangjiaojiao", "name": "唐娇娇", "total": 2614, "viewed": 872, "rate": 0.3335883703136955, "lessons": 13}, {"ad": "denghanyi1", "name": "邓涵宜", "total": 2592, "viewed": 1116, "rate": 0.4305555555555556, "lessons": 11}, {"ad": "yaoshimeng", "name": "姚诗萌", "total": 2562, "viewed": 952, "rate": 0.37158469945355194, "lessons": 17}, {"ad": "niuxiaohong", "name": "牛晓红", "total": 2554, "viewed": 918, "rate": 0.3594361785434612, "lessons": 8}, {"ad": "cuiludan", "name": "崔露丹", "total": 2551, "viewed": 1257, "rate": 0.4927479419835359, "lessons": 8}, {"ad": "wuminghao", "name": "吴明浩", "total": 2549, "viewed": 1166, "rate": 0.4574342879560612, "lessons": 8}, {"ad": "chenxiaoxiao", "name": "陈晓晓", "total": 2537, "viewed": 1261, "rate": 0.4970437524635396, "lessons": 8}, {"ad": "zhangwenwen1", "name": "张文文", "total": 2529, "viewed": 1153, "rate": 0.45591142744167656, "lessons": 8}, {"ad": "wangwenyu01", "name": "王闻宇", "total": 2528, "viewed": 932, "rate": 0.3686708860759494, "lessons": 17}, {"ad": "zhangshanshan", "name": "张杉杉", "total": 2524, "viewed": 989, "rate": 0.391838351822504, "lessons": 8}, {"ad": "lixinhong", "name": "李欣鸿", "total": 2518, "viewed": 562, "rate": 0.22319301032565528, "lessons": 13}, {"ad": "wangyingjie", "name": "王英杰", "total": 2510, "viewed": 1105, "rate": 0.4402390438247012, "lessons": 8}, {"ad": "zhangjiaying1", "name": "张佳莹", "total": 2507, "viewed": 813, "rate": 0.3242919824491424, "lessons": 8}, {"ad": "liulinxiu", "name": "刘林秀", "total": 2507, "viewed": 1228, "rate": 0.4898284802552852, "lessons": 8}, {"ad": "huanglei", "name": "黄磊", "total": 2506, "viewed": 1180, "rate": 0.47086991221069435, "lessons": 8}, {"ad": "wuxugang", "name": "武旭刚", "total": 2496, "viewed": 1050, "rate": 0.4206730769230769, "lessons": 8}, {"ad": "xushuang", "name": "许爽", "total": 2495, "viewed": 1075, "rate": 0.4308617234468938, "lessons": 8}, {"ad": "jiangke", "name": "姜珂", "total": 2494, "viewed": 1026, "rate": 0.4113873295910184, "lessons": 8}, {"ad": "xianjuteng", "name": "羡巨腾", "total": 2491, "viewed": 978, "rate": 0.3926134082697712, "lessons": 8}, {"ad": "liuyuru", "name": "刘竽汝", "total": 2488, "viewed": 1087, "rate": 0.43689710610932475, "lessons": 8}, {"ad": "lixiu", "name": "李秀", "total": 2476, "viewed": 1108, "rate": 0.44749596122778673, "lessons": 8}, {"ad": "yanling", "name": "严玲", "total": 2469, "viewed": 1186, "rate": 0.4803564196030782, "lessons": 11}, {"ad": "wangjie3", "name": "王杰", "total": 2464, "viewed": 1106, "rate": 0.44886363636363635, "lessons": 8}, {"ad": "zhuxinying", "name": "朱新颖", "total": 2463, "viewed": 1008, "rate": 0.4092570036540804, "lessons": 11}, {"ad": "baiyunxiao", "name": "白云肖", "total": 2463, "viewed": 742, "rate": 0.30125862768980916, "lessons": 8}, {"ad": "zhangjian", "name": "张建", "total": 2459, "viewed": 902, "rate": 0.3668157787718585, "lessons": 8}, {"ad": "yangliankai", "name": "杨连开", "total": 2458, "viewed": 1120, "rate": 0.45565500406834825, "lessons": 8}, {"ad": "guoyaya", "name": "郭雅雅", "total": 2457, "viewed": 1138, "rate": 0.46316646316646315, "lessons": 8}, {"ad": "wangying101", "name": "王莹", "total": 2447, "viewed": 854, "rate": 0.3489987740089906, "lessons": 8}, {"ad": "luojiajia", "name": "罗佳佳", "total": 2445, "viewed": 918, "rate": 0.3754601226993865, "lessons": 8}, {"ad": "chenzijia", "name": "陈子佳", "total": 2442, "viewed": 1032, "rate": 0.4226044226044226, "lessons": 8}, {"ad": "liziyue", "name": "李子月", "total": 2437, "viewed": 888, "rate": 0.36438243742306115, "lessons": 8}, {"ad": "xuxue", "name": "徐雪", "total": 2437, "viewed": 1042, "rate": 0.4275748871563398, "lessons": 8}, {"ad": "wangxinran", "name": "王欣然", "total": 2435, "viewed": 676, "rate": 0.27761806981519505, "lessons": 15}, {"ad": "liqingbo", "name": "李庆波", "total": 2433, "viewed": 870, "rate": 0.35758323057953145, "lessons": 8}, {"ad": "wuyupeng", "name": "吴雨澎", "total": 2422, "viewed": 1017, "rate": 0.4199009083402147, "lessons": 8}, {"ad": "zhangwenyue", "name": "张文越", "total": 2421, "viewed": 1231, "rate": 0.5084675753820735, "lessons": 8}, {"ad": "zhupengyu", "name": "朱鹏宇", "total": 2420, "viewed": 709, "rate": 0.2929752066115702, "lessons": 8}, {"ad": "heyanjing", "name": "何燕静", "total": 2411, "viewed": 866, "rate": 0.35918705931148903, "lessons": 8}, {"ad": "chenziyu", "name": "陈紫玉", "total": 2410, "viewed": 865, "rate": 0.35892116182572614, "lessons": 8}, {"ad": "tianshaohan", "name": "田绍含", "total": 2404, "viewed": 892, "rate": 0.37104825291181365, "lessons": 8}, {"ad": "liangning", "name": "梁宁", "total": 2404, "viewed": 895, "rate": 0.3722961730449251, "lessons": 8}, {"ad": "wangjiaqi3", "name": "王嘉琪", "total": 2402, "viewed": 838, "rate": 0.3488759367194005, "lessons": 8}, {"ad": "zhanghuifang", "name": "张慧芳", "total": 2398, "viewed": 851, "rate": 0.3548790658882402, "lessons": 8}, {"ad": "haojingping", "name": "郝敬平", "total": 2392, "viewed": 752, "rate": 0.31438127090301005, "lessons": 8}, {"ad": "yantingrui", "name": "颜廷瑞", "total": 2384, "viewed": 1052, "rate": 0.4412751677852349, "lessons": 8}, {"ad": "huronghui", "name": "胡荣会", "total": 2378, "viewed": 1012, "rate": 0.4255677039529016, "lessons": 8}, {"ad": "huangzheng", "name": "黄正", "total": 2378, "viewed": 892, "rate": 0.37510513036164844, "lessons": 8}, {"ad": "liuhuan01", "name": "刘欢", "total": 2373, "viewed": 1124, "rate": 0.47366203118415506, "lessons": 8}, {"ad": "guoyuxin", "name": "郭玉欣", "total": 2367, "viewed": 1124, "rate": 0.4748626953950148, "lessons": 8}, {"ad": "weidongxue", "name": "魏冬雪", "total": 2351, "viewed": 1150, "rate": 0.48915355168013613, "lessons": 8}, {"ad": "xiejinming", "name": "谢津明", "total": 2328, "viewed": 1012, "rate": 0.43470790378006874, "lessons": 8}, {"ad": "wangxuanzhe", "name": "王璇哲", "total": 2316, "viewed": 1075, "rate": 0.4641623488773748, "lessons": 8}, {"ad": "jiaotingting", "name": "焦亭亭", "total": 2315, "viewed": 1111, "rate": 0.4799136069114471, "lessons": 8}, {"ad": "zhukaili", "name": "朱凯丽", "total": 2312, "viewed": 1021, "rate": 0.4416089965397924, "lessons": 8}, {"ad": "luyujiao", "name": "卢玉娇", "total": 2286, "viewed": 1102, "rate": 0.4820647419072616, "lessons": 11}, {"ad": "fuchunxiao", "name": "付春晓", "total": 2281, "viewed": 990, "rate": 0.4340201665935993, "lessons": 8}, {"ad": "gaoxin02", "name": "高昕", "total": 2279, "viewed": 681, "rate": 0.29881526985519963, "lessons": 15}, {"ad": "hanmingyu", "name": "韩明宇", "total": 2263, "viewed": 1061, "rate": 0.4688466637207247, "lessons": 8}, {"ad": "wanglong", "name": "王珑", "total": 2260, "viewed": 676, "rate": 0.2991150442477876, "lessons": 8}, {"ad": "manyili", "name": "满奕利", "total": 2253, "viewed": 683, "rate": 0.3031513537505548, "lessons": 8}, {"ad": "lixin2", "name": "李欣", "total": 2251, "viewed": 981, "rate": 0.4358063083074189, "lessons": 8}, {"ad": "wangchenrui", "name": "王晨瑞", "total": 2229, "viewed": 916, "rate": 0.41094661283086587, "lessons": 8}, {"ad": "renmeiling", "name": "任美灵", "total": 2221, "viewed": 1016, "rate": 0.45745159837910854, "lessons": 8}, {"ad": "liuyaqi", "name": "刘雅奇", "total": 2195, "viewed": 942, "rate": 0.42915717539863324, "lessons": 8}, {"ad": "liujiaming", "name": "柳佳明", "total": 2169, "viewed": 959, "rate": 0.442139234670355, "lessons": 8}, {"ad": "suomingyue", "name": "索明月", "total": 2165, "viewed": 990, "rate": 0.45727482678983833, "lessons": 8}, {"ad": "zhaoruyi", "name": "赵如意", "total": 2161, "viewed": 746, "rate": 0.34521055067098566, "lessons": 17}, {"ad": "liulinghan", "name": "刘凌寒", "total": 2136, "viewed": 685, "rate": 0.32069288389513106, "lessons": 8}, {"ad": "xujing", "name": "徐璟", "total": 2122, "viewed": 1011, "rate": 0.4764373232799246, "lessons": 11}, {"ad": "wangli1", "name": "王丽", "total": 2096, "viewed": 902, "rate": 0.4303435114503817, "lessons": 8}, {"ad": "songyan1", "name": "宋艳", "total": 2089, "viewed": 572, "rate": 0.27381522259454283, "lessons": 8}, {"ad": "linan", "name": "李楠", "total": 2028, "viewed": 1037, "rate": 0.5113412228796844, "lessons": 8}, {"ad": "jiangyue", "name": "姜悦", "total": 2011, "viewed": 625, "rate": 0.31079065141720535, "lessons": 9}, {"ad": "wanghongyang1", "name": "王洪杨", "total": 1977, "viewed": 831, "rate": 0.4203338391502276, "lessons": 8}, {"ad": "wangyuting", "name": "王宇婷", "total": 1958, "viewed": 499, "rate": 0.2548518896833504, "lessons": 17}, {"ad": "qieyangfan", "name": "郄扬帆", "total": 1861, "viewed": 621, "rate": 0.33369156367544334, "lessons": 8}, {"ad": "wangxue7", "name": "王雪", "total": 1859, "viewed": 466, "rate": 0.2506724045185584, "lessons": 13}, {"ad": "weishumin", "name": "卫殊敏", "total": 1858, "viewed": 889, "rate": 0.47847147470398277, "lessons": 11}, {"ad": "chenhe1", "name": "陈鹤", "total": 1848, "viewed": 490, "rate": 0.26515151515151514, "lessons": 9}, {"ad": "zhangxiaonan", "name": "张霄楠", "total": 1797, "viewed": 811, "rate": 0.451307735114079, "lessons": 8}, {"ad": "maqiang", "name": "马强", "total": 1607, "viewed": 667, "rate": 0.4150591163658992, "lessons": 7}, {"ad": "huangruonan", "name": "黄若楠", "total": 1396, "viewed": 544, "rate": 0.38968481375358166, "lessons": 7}, {"ad": "xukangxin", "name": "许康馨", "total": 1374, "viewed": 510, "rate": 0.37117903930131, "lessons": 7}, {"ad": "wangxiaotong", "name": "王晓彤", "total": 1344, "viewed": 496, "rate": 0.36904761904761907, "lessons": 7}, {"ad": "zhaoxinyi", "name": "赵昕怡", "total": 1317, "viewed": 383, "rate": 0.29081245254365984, "lessons": 8}, {"ad": "sheyachao", "name": "佘亚超", "total": 1306, "viewed": 712, "rate": 0.5451761102603369, "lessons": 11}, {"ad": "tonglinfei", "name": "佟林霏", "total": 1086, "viewed": 463, "rate": 0.4263351749539595, "lessons": 9}, {"ad": "yuyan1", "name": "于妍", "total": 1074, "viewed": 194, "rate": 0.18063314711359404, "lessons": 6}, {"ad": "taomingzhu", "name": "陶明珠", "total": 942, "viewed": 398, "rate": 0.42250530785562634, "lessons": 9}, {"ad": "fengmeizhizi", "name": "冯美智子", "total": 871, "viewed": 377, "rate": 0.43283582089552236, "lessons": 4}, {"ad": "zhanglihua", "name": "张丽华", "total": 846, "viewed": 225, "rate": 0.26595744680851063, "lessons": 5}, {"ad": "shengnan", "name": "胜男", "total": 841, "viewed": 308, "rate": 0.36623067776456597, "lessons": 8}, {"ad": "lanyuefeng", "name": "兰月峰", "total": 750, "viewed": 163, "rate": 0.21733333333333332, "lessons": 5}, {"ad": "linpanpan", "name": "吝盼盼", "total": 743, "viewed": 155, "rate": 0.20861372812920592, "lessons": 5}, {"ad": "wangliying", "name": "王丽影", "total": 738, "viewed": 142, "rate": 0.19241192411924118, "lessons": 5}, {"ad": "wangxuetong", "name": "汪雪桐", "total": 697, "viewed": 169, "rate": 0.242467718794835, "lessons": 5}, {"ad": "yuping", "name": "于萍", "total": 682, "viewed": 183, "rate": 0.26832844574780057, "lessons": 5}, {"ad": "yangjinghui", "name": "杨靖辉", "total": 489, "viewed": 143, "rate": 0.29243353783231085, "lessons": 3}, {"ad": "maying1", "name": "马莹", "total": 482, "viewed": 93, "rate": 0.19294605809128632, "lessons": 2}, {"ad": "weimengjie", "name": "魏孟杰", "total": 315, "viewed": 66, "rate": 0.20952380952380953, "lessons": 2}, {"ad": "liuxinyu", "name": "刘昕宇", "total": 105, "viewed": 18, "rate": 0.17142857142857143, "lessons": 21}, {"ad": "gaozhaoyue1", "name": "高照月", "total": 32, "viewed": 12, "rate": 0.375, "lessons": 2}, {"ad": "yaoxinwei", "name": "姚欣炜~", "total": 7, "viewed": 0, "rate": 0.0, "lessons": 4}, {"ad": "hufeng02", "name": "胡风-测试", "total": 4, "viewed": 3, "rate": 0.75, "lessons": 2}], "userRate": 0.34518675329647436, "otherRate": 0.3545741217800402, "allRate": 0.3518386864619039, "medianBatch": 4, "maxBatch": 119, "singleShare": 0.18454935622317598};
+const fmt = n => n.toLocaleString('zh-CN');
+const pct = n => (n*100).toFixed(1)+'%';
+const C = {indigo:'#4F46E5', indigoSoft:'#A5B4FC', teal:'#0D9488', slate:'#94A3B8', amber:'#D97706', red:'#C9403A', green:'#2E7D5B', line:'#E9E7DF'};
+
+// KPI
+const kpis = [
+  {lab:'使用批量反馈的教辅', val:DATA.users, unit:'位', cap:`占有点评数据的 ${DATA.totalAds} 位教辅的 ${pct(DATA.users/DATA.totalAds)}`, cls:'hl'},
+  {lab:'批量反馈使用次数', val:fmt(DATA.batches), unit:'次', cap:`人均 ${(DATA.batches/DATA.users).toFixed(1)} 次/位`, cls:'hl'},
+  {lab:'反馈条数', val:fmt(DATA.records), unit:'条', cap:`覆盖学生 ${fmt(DATA.students)} 人`, cls:''},
+  {lab:'平均每次反馈条数', val:(DATA.records/DATA.batches).toFixed(1), unit:'条', cap:`中位 ${DATA.medianBatch} 条 · 最多 ${DATA.maxBatch} 条`, cls:''},
+  {lab:'使用组点评查看率', val:pct(DATA.userRate), unit:'', cap:`${fmt(DATA.user.total)} 点评 / ${fmt(DATA.user.viewed)} 查看`, cls:'tl'},
+  {lab:'全部教辅查看率', val:pct(DATA.allRate), unit:'', cap:`${DATA.totalAds} 位教辅累计`, cls:'hl'}
 ];
-const AVG=36.3;
-const gridColor="rgba(38,33,92,.07)";
-const tickColor="#8A8894";
+document.getElementById('kpis').innerHTML = kpis.map(k=>`
+  <div class="card kpi ${k.cls}">
+    <div class="lab">${k.lab}</div>
+    <div class="val">${k.val}<small>${k.unit}</small></div>
+    <div class="cap">${k.cap}</div>
+  </div>`).join('');
 
-/* ---------- chart 1: rank ---------- */
-const byRate=[...DATA].sort((a,b)=>b.rate-a.rate);
-new Chart(document.getElementById("rankChart"),{
-  type:"bar",
-  data:{
-    labels:byRate.map(d=>d.name),
-    datasets:[{
-      label:"查看率",
-      data:byRate.map(d=>d.rate),
-      backgroundColor:byRate.map(d=>d.rate>AVG+0.05?"#C9403A":d.rate<AVG-0.05?"#2E7D5B":"#B4B2A9"),
-      borderRadius:3,barThickness:16
-    }]
-  },
-  options:{
-    indexAxis:"y",responsive:true,maintainAspectRatio:false,
-    plugins:{
-      legend:{display:false},
-      tooltip:{callbacks:{label:c=>" 查看率 "+c.parsed.x.toFixed(1)+"%"}}
-    },
-    scales:{
-      x:{min:0,max:50,grid:{color:gridColor},ticks:{color:tickColor,font:{size:11},callback:v=>v+"%"}},
-      y:{grid:{display:false},ticks:{color:"#4A4668",font:{size:11}}}
-    }
-  },
-  plugins:[{
-    id:"avgLine",
-    afterDatasetsDraw(chart){
-      const x=chart.scales.x.getPixelForValue(AVG);
-      const {top,bottom}=chart.chartArea;
-      const ctx=chart.ctx;
-      ctx.save();
-      ctx.strokeStyle="#26215C";ctx.setLineDash([5,4]);ctx.lineWidth=1.2;
-      ctx.beginPath();ctx.moveTo(x,top);ctx.lineTo(x,bottom);ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.font="11px sans-serif";ctx.fillStyle="#26215C";
-      ctx.fillText("平均 36.3%",Math.min(x+6,chart.chartArea.right-80),top+12);
-      ctx.restore();
-    }
-  }]
+// 1. comparison
+new Chart(document.getElementById('cmpChart'), {
+  type:'bar',
+  data:{labels:['全部教辅','未使用批量反馈','使用批量反馈'],
+    datasets:[{data:[DATA.allRate,DATA.otherRate,DATA.userRate],
+      backgroundColor:[C.teal,C.slate,C.indigo], borderRadius:6, barThickness:36}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${pct(c.parsed.x)}`}}},
+    scales:{x:{min:0,max:50,grid:{color:C.line},ticks:{color:'#8B8899',callback:v=>v+'%'}},
+      y:{grid:{display:false},ticks:{color:'#4A4763',font:{size:12.5}}}}}
+});
+document.getElementById('gapCallout').innerHTML =
+  `使用组 <b>${pct(DATA.userRate)}</b> vs 未使用组 <b>${pct(DATA.otherRate)}</b>，相差 <b>${((DATA.userRate-DATA.otherRate)*100).toFixed(1)} 个百分点</b>`;
+document.getElementById('cmpNote').innerHTML =
+  `使用批量反馈的教辅整体略低于未使用组。结合后面的年级数据看，使用组里低年级占比更高（一、二年级查看率仅 23% 左右），结构差异会放大这 $0.9$ 个点的差距。`;
+
+// 2. bands
+const bandLabels = ['≥50%','40–50%','30–40%','20–30%','<20%'];
+const uShares = bandLabels.map(k=>DATA.userBands[k]/DATA.users);
+const nShares = bandLabels.map(k=>DATA.otherBands[k]/DATA.otherDetail.length);
+new Chart(document.getElementById('bandChart'), {
+  type:'bar',
+  data:{labels:bandLabels,datasets:[
+    {label:'使用批量反馈',data:uShares,backgroundColor:C.indigo,borderRadius:4,barPercentage:.72},
+    {label:'未使用批量反馈',data:nShares,backgroundColor:C.indigoSoft,borderRadius:4,barPercentage:.72}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{boxWidth:10,font:{size:11.5}}},
+      tooltip:{callbacks:{label:c=>` ${c.dataset.label} ${pct(c.parsed.y)}`}}},
+    scales:{x:{grid:{display:false},ticks:{color:'#4A4763'}},
+      y:{grid:{color:C.line},ticks:{color:'#8B8899',callback:v=>(v*100)+'%'}}}}
+});
+document.getElementById('bandCallout').innerHTML =
+  `使用组 <b>${pct(DATA.userBands['30–40%']/DATA.users)}</b> 集中在 30–40% 档，且没有任何一位超过 50%；未使用组有 <b>${DATA.otherBands['≥50%']}</b> 位超过 50%、<b>${pct(DATA.otherBands['40–50%']/DATA.otherDetail.length)}</b> 落在 40–50% 档。`;
+
+// 3. grade
+const g = DATA.grades;
+new Chart(document.getElementById('gradeChart'), {
+  type:'bar',
+  data:{labels:g.map(x=>x.g),datasets:[{data:g.map(x=>x.rate),
+    backgroundColor:g.map(x=>x.rate>=.4?C.green:x.rate>=.3?C.indigo:x.rate>=.25?C.amber:C.red),
+    borderRadius:5,barPercentage:.62}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{
+      label:c=>` 查看率 ${pct(c.parsed.y)}`,
+      afterLabel:c=>{const x=g[c.dataIndex];return [`${fmt(x.viewed)} / ${fmt(x.total)} 条`,`使用批量反馈教辅 ${x.userAds} / ${x.ads} 位`];}}}},
+    scales:{x:{grid:{display:false},ticks:{color:'#4A4763',font:{size:12}}},
+      y:{grid:{color:C.line},max:.55,ticks:{color:'#8B8899',callback:v=>(v*100)+'%'}}}}
 });
 
-/* ---------- chart 2: stack ---------- */
-const byTotal=[...DATA].sort((a,b)=>b.total-a.total);
-new Chart(document.getElementById("stackChart"),{
-  type:"bar",
-  data:{
-    labels:byTotal.map(d=>d.name),
+// 4. batch size
+const bk = Object.keys(DATA.buckets), bv = bk.map(k=>DATA.buckets[k]);
+new Chart(document.getElementById('sizeChart'), {
+  type:'bar',
+  data:{labels:bk,datasets:[{data:bv,backgroundColor:[C.red,C.amber,C.indigo,C.teal,C.green],borderRadius:5,barPercentage:.6}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.parsed.y} 次 · 占 ${pct(c.parsed.y/DATA.batches)}`}}},
+    scales:{x:{grid:{display:false},ticks:{color:'#4A4763'}},
+      y:{grid:{color:C.line},ticks:{color:'#8B8899'}}}}
+});
+document.getElementById('sizeCallout').innerHTML =
+  `只发给 <b>1 个学生</b> 的批次有 <b>${DATA.buckets['1人']}</b> 次，占全部批次的 <b>${pct(DATA.singleShare)}</b>；一次覆盖 50 人以上的只有 ${DATA.buckets['50人以上']} 次。`;
+
+// 5. daily
+const days = Object.keys(DATA.days);
+new Chart(document.getElementById('dayChart'), {
+  data:{labels:days.map(d=>d.slice(5)),
     datasets:[
-      {label:"已查看",data:byTotal.map(d=>d.viewed),backgroundColor:"#534AB7",borderRadius:3,barThickness:16},
-      {label:"未查看",data:byTotal.map(d=>d.total-d.viewed),backgroundColor:"#D9D6F3",borderRadius:3,barThickness:16}
-    ]
-  },
-  options:{
-    indexAxis:"y",responsive:true,maintainAspectRatio:false,
-    interaction:{mode:"index",intersect:false,axis:"y"},
-    plugins:{
-      legend:{display:false},
-      tooltip:{
-        mode:"index",intersect:false,
-        callbacks:{
-          title:items=>items[0].label,
-          label:c=>" "+c.dataset.label+" "+c.parsed.x.toLocaleString("zh-CN")+" 条",
-          footer:items=>{
-            const d=byTotal.find(x=>x.name===items[0].label);
-            if(!d) return "";
-            return [
-              "点评总数 "+d.total.toLocaleString("zh-CN")+" 条",
-              "未查看 "+(d.total-d.viewed).toLocaleString("zh-CN")+" 条",
-              "查看率 "+(d.viewed/d.total*100).toFixed(1)+"%"
-            ];
-          }
-        }
-      }
-    },
-    scales:{
-      x:{stacked:true,grid:{color:gridColor},ticks:{color:tickColor,font:{size:11},callback:v=>(v/1000)+"k"}},
-      y:{stacked:true,grid:{display:false},ticks:{color:"#4A4668",font:{size:11}}}
-    }
-  }
+      {type:'bar',label:'反馈条数',data:days.map(d=>DATA.days[d].records),backgroundColor:days.map(d=>d==='2026-10-17'?C.indigo:'#C7C9F2'),borderRadius:4,yAxisID:'y'},
+      {type:'line',label:'使用次数',data:days.map(d=>DATA.days[d].batches),borderColor:C.teal,backgroundColor:C.teal,borderWidth:2,pointRadius:3,tension:.3,yAxisID:'y1'}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{boxWidth:10,font:{size:11.5}}},
+      tooltip:{callbacks:{title:it=>it[0].label,label:c=>` ${c.dataset.label} ${fmt(c.parsed.y)}`}}},
+    scales:{x:{grid:{display:false},ticks:{color:'#4A4763'}},
+      y:{position:'left',grid:{color:C.line},ticks:{color:'#8B8899'},title:{display:true,text:'反馈条数',color:'#8B8899',font:{size:11}}},
+      y1:{position:'right',grid:{display:false},ticks:{color:C.teal},title:{display:true,text:'使用次数',color:C.teal,font:{size:11}}}}}
 });
+document.getElementById('dayChips').innerHTML =
+  `<span class="chip">10/17 单日 ${fmt(DATA.days['2026-10-17'].records)} 条，占全期 ${pct(DATA.days['2026-10-17'].records/DATA.records)}</span>
+   <span class="chip">20 天里只有 ${days.length} 天有操作</span>
+   <span class="chip">10/2–10/8 无记录</span>`;
 
-/* ---------- table ---------- */
-let sortKey="rate",sortDir=-1;
-const tbody=document.getElementById("tbody");
-const fmt=n=>n.toLocaleString("zh-CN");
+// 6. scatter
+const pts = DATA.userDetail.map(d=>({x:d.uses,y:d.rate,r:d.total,name:d.name,viewed:d.viewed}));
+new Chart(document.getElementById('scatterChart'), {
+  type:'bubble',
+  data:{datasets:[{data:pts,backgroundColor:'rgba(79,70,229,.55)',borderColor:C.indigo,borderWidth:1}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{const d=c.raw;return [`${d.name} · 使用 ${d.x} 次`,`查看率 ${pct(d.y)}`,`点评总数 ${fmt(d.r)}`];}}}},
+    scales:{x:{title:{display:true,text:'批量反馈使用次数',color:'#8B8899'},grid:{color:C.line},ticks:{color:'#8B8899'}},
+      y:{title:{display:true,text:'点评查看率',color:'#8B8899'},grid:{color:C.line},ticks:{color:'#8B8899',callback:v=>(v*100)+'%'},suggestedMin:0,suggestedMax:.55}}}
+});
+const topU = [...DATA.userDetail].slice(0,10);
+document.getElementById('topUses').innerHTML = topU.map((d,i)=>`
+  <div class="rank-row"><span class="idx">${i+1}</span>
+    <span>${d.name}<span style="color:#8B8899;font-size:11.5px"> ${d.ad}</span>
+      <div class="bar"><i style="width:${d.uses/topU[0].uses*100}%"></i></div></span>
+    <span class="num">${d.uses} 次</span><span class="num" style="color:#8B8899">${pct(d.rate)}</span></div>`).join('');
+const topR = [...DATA.userDetail].sort((a,b)=>b.rate-a.rate).slice(0,5);
+document.getElementById('topRate').innerHTML = topR.map((d,i)=>`
+  <div class="rank-row"><span class="idx">${i+1}</span>
+    <span>${d.name}<span style="color:#8B8899;font-size:11.5px"> ${d.ad}</span></span>
+    <span class="num">${pct(d.rate)}</span><span class="num" style="color:#8B8899">${fmt(d.total)} 点评</span></div>`).join('');
 
-function render(){
-  const q=document.getElementById("search").value.trim();
-  let rows=DATA.filter(d=>!q||d.name.includes(q));
-  rows.sort((a,b)=>{
-    const va=a[sortKey],vb=b[sortKey];
-    const cmp=(typeof va==="string")?va.localeCompare(vb,"zh"):va-vb;
-    return cmp*sortDir;
-  });
-  tbody.innerHTML=rows.map(d=>{
-    const up=d.rate>AVG+0.05,down=d.rate<AVG-0.05;
-    const cls=up?"up":down?"down":"avg";
-    const color=up?"#C9403A":down?"#2E7D5B":"#B4B2A9";
-    return `<tr>
-      <td>${d.name}</td>
-      <td>${d.use}</td>
-      <td>${fmt(d.fb)}</td>
-      <td>${fmt(d.stu)}</td>
-      <td>${d.bsize.toFixed(1)}</td>
-      <td>${fmt(d.total)}</td>
-      <td>${fmt(d.viewed)}</td>
-      <td><div class="rate-cell">
-        <span class="rate-bar"><i style="width:${d.rate/50*100}%;background:${color}"></i></span>
-        <span class="badge ${cls}">${d.rate.toFixed(1)}%</span>
-      </div></td>
-    </tr>`;
-  }).join("")||`<tr><td colspan="8" style="text-align:center;color:#8A8894;padding:24px">没有匹配的教辅</td></tr>`;
+// 7. table
+let sortK='uses', sortDir=-1;
+const rowsAll = DATA.userDetail;
+function renderTable(){
+  const q=document.getElementById('q').value.trim();
+  let rows=rowsAll.filter(d=>!q||d.name.includes(q)||d.ad.includes(q));
+  rows.sort((a,b)=>{const va=a[sortK],vb=b[sortK];const c=(typeof va==='string')?va.localeCompare(vb,'zh'):va-vb;return c*sortDir;});
+  document.querySelector('#tbl tbody').innerHTML = rows.map(d=>{
+    const cls = d.rate>=DATA.userRate ? 'hi' : d.rate<.25 ? 'lo' : 'mid';
+    return `<tr><td>${d.name}</td><td>${d.ad}</td><td class="num">${d.uses}</td><td class="num">${fmt(d.records)}</td>
+      <td class="num">${fmt(d.students)}</td><td class="num">${d.per_use.toFixed(1)}</td><td class="num">${fmt(d.total)}</td>
+      <td class="num">${fmt(d.viewed)}</td><td><span class="pill ${cls}">${pct(d.rate)}</span></td></tr>`;
+  }).join('');
+  document.getElementById('cnt').textContent = `共 ${rows.length} 位 · 平均查看率 ${pct(DATA.userRate)}`;
 }
-
-document.querySelectorAll("#mainTable thead th").forEach(th=>{
-  th.addEventListener("click",()=>{
-    const key=th.dataset.key;
-    if(sortKey===key){sortDir*=-1;}else{sortKey=key;sortDir=(th.dataset.type==="str")?1:-1;}
-    document.querySelectorAll("#mainTable thead th").forEach(t=>{
-      t.classList.remove("sorted");
-      const a=t.querySelector(".arrow");if(a)a.remove();
-    });
-    th.classList.add("sorted");
-    th.insertAdjacentHTML("beforeend",` <span class="arrow">${sortDir===1?"▲":"▼"}</span>`);
-    render();
-  });
+document.querySelectorAll('#tbl th').forEach(th=>{
+  th.onclick=()=>{const k=th.dataset.k; if(sortK===k) sortDir*=-1; else {sortK=k;sortDir=-1;} renderTable();};
 });
-document.getElementById("search").addEventListener("input",render);
-render();
+document.getElementById('q').oninput=renderTable;
+renderTable();
 </script>
 </body>
 </html>
