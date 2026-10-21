@@ -95,7 +95,7 @@
   <div class="sub">使用数据 <b>2026-10-01 至 10-20</b> ｜ 点评查看率 <b>2026-08-01 至 10-20 累计</b> ｜ 面向业务使用方</div>
   <div class="kicker">
     一句话结论：<b>批量反馈的使用正在扩散，但覆盖仍只有 26%</b>；在同年级对比中，<span class="hl">6 个可比年级有 5 个使用组查看率更高</span>，
-    而<span class="hl">使用次数最高的 25% 教辅，查看率比最低 25% 高 6.7 个百分点</span>——用得对、用得勤的教辅，家长看得更多。
+    而<span class="hl">使用次数最高的 25% 教辅，查看率比最低 25% 高 6.6 个百分点</span>——用得对、用得勤的教辅，家长看得更多。
   </div>
 
   <section class="sec">
@@ -173,7 +173,7 @@
     <div class="grid g3">
       <div class="action"><div class="who">动作 1 · 转化高潜未使用者</div><h3>先打点评量前 20 的未使用教辅</h3><p>本周一对一沟通，用同年级对比数据（如三年级使用组高 3.4pp）说明价值，目标是下期覆盖率从 26.2% 提升到 35% 以上。</p></div>
       <div class="action"><div class="who">动作 2 · 教会正确用法</div><h3>把"单学生批次"拉进批量场景</h3><p>18.5% 的批次只覆盖 1 个学生。培训强调"同班同进度一起发"，目标把平均每次覆盖人数从 9.5 提到 12 以上。</p></div>
-      <div class="action"><div class="who">动作 3 · 关注低频使用者</div><h3>低频组是查看率洼地</h3><p>使用最少的 25% 教辅查看率仅 31.7%，比高频组低 6.7pp。给低频用户每周一次使用提醒，优先覆盖二年级（唯一使用组更低的年级）。</p></div>
+      <div class="action"><div class="who">动作 3 · 关注低频使用者</div><h3>低频组是查看率洼地</h3><p>使用最少的 25% 教辅查看率仅 31.7%，比高频组低 6.6pp。给低频用户每周一次使用提醒，优先覆盖二年级（唯一使用组更低的年级）。</p></div>
     </div>
   </section>
 
@@ -224,8 +224,8 @@ const kpis=[
  {lab:'批量反馈使用次数',val:fmt(DATA.batches),unit:'次',delta:d(DATA.batches-L.batches),cap:`人均 ${(DATA.batches/DATA.users).toFixed(1)} 次`,cls:'hl'},
  {lab:'反馈条数',val:fmt(DATA.records),unit:'条',delta:'',cap:`覆盖学生 ${fmt(DATA.students)} 人`,cls:''},
  {lab:'平均每次反馈条数',val:(DATA.records/DATA.batches).toFixed(1),unit:'条',delta:d((DATA.records/DATA.batches)-L.perBatch),cap:`中位 ${DATA.medianBatch} 条 · 最多 ${DATA.maxBatch} 条`,cls:''},
- {lab:'使用组点评查看率',val:pct(DATA.userRate),unit:'',delta:d((DATA.userRate-L.userRate)*100,'pp'),cap:`全部教辅 ${pct(DATA.allRate)}`,cls:'tl'},
- {lab:'人均使用次数',val:(DATA.batches/DATA.users).toFixed(1),unit:'次',delta:d((DATA.batches/DATA.users)-L.perUser),cap:`较上周分散到更多教辅`,cls:''}
+ {lab:'使用组点评查看率',val:pct(DATA.userRate),unit:'',delta:'',cap:`全部教辅 ${pct(DATA.allRate)} · 上周为 25 位 36.3%`,cls:'tl'},
+ {lab:'人均使用次数',val:(DATA.batches/DATA.users).toFixed(1),unit:'次',delta:'<span class="delta flat">分母 25 → 76 位</span>',cap:`使用人数扩大后自然摊薄`,cls:''}
 ];
 document.getElementById('kpis').innerHTML=kpis.map(k=>`<div class="card kpi ${k.cls}"><div class="lab">${k.lab}</div><div class="val">${k.val}<small>${k.unit}</small></div>${k.delta}<div class="lab" style="margin-top:6px">${k.cap}</div></div>`).join('');
 document.getElementById('statusChips').innerHTML=
