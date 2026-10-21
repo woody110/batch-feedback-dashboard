@@ -250,7 +250,7 @@ new Chart(document.getElementById('gradeChart'), {
       label:c=>` 查看率 ${pct(c.parsed.y)}`,
       afterLabel:c=>{const x=g[c.dataIndex];return [`${fmt(x.viewed)} / ${fmt(x.total)} 条`,`使用批量反馈教辅 ${x.userAds} / ${x.ads} 位`];}}}},
     scales:{x:{grid:{display:false},ticks:{color:'#4A4763',font:{size:12}}},
-      y:{grid:{color:C.line},max:.55,ticks:{color:'#8B8899',callback:v=>(v*100)+'%'}}}}
+      y:{grid:{color:C.line},max:.5,ticks:{color:'#8B8899',stepSize:.1,callback:v=>Math.round(v*100)+'%'}}}}
 });
 
 // 4. batch size
