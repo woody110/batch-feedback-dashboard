@@ -190,7 +190,7 @@ const C = {indigo:'#4F46E5', indigoSoft:'#A5B4FC', teal:'#0D9488', slate:'#94A3B
 
 // KPI
 const kpis = [
-  {lab:'使用批量反馈的教辅', val:DATA.users, unit:'位', cap:`占有点评数据的 ${DATA.totalAds} 位教辅的 ${pct(DATA.users/DATA.totalAds)}`, cls:'hl'},
+  {lab:'使用批量反馈的教辅', val:DATA.users, unit:'位', cap:`在 ${DATA.totalAds} 位有点评数据的教辅中占 ${pct(DATA.users/DATA.totalAds)}`, cls:'hl'},
   {lab:'批量反馈使用次数', val:fmt(DATA.batches), unit:'次', cap:`人均 ${(DATA.batches/DATA.users).toFixed(1)} 次/位`, cls:'hl'},
   {lab:'反馈条数', val:fmt(DATA.records), unit:'条', cap:`覆盖学生 ${fmt(DATA.students)} 人`, cls:''},
   {lab:'平均每次反馈条数', val:(DATA.records/DATA.batches).toFixed(1), unit:'条', cap:`中位 ${DATA.medianBatch} 条 · 最多 ${DATA.maxBatch} 条`, cls:''},
@@ -216,9 +216,9 @@ new Chart(document.getElementById('cmpChart'), {
       y:{grid:{display:false},ticks:{color:'#4A4763',font:{size:12.5}}}}}
 });
 document.getElementById('gapCallout').innerHTML =
-  `使用组 <b>${pct(DATA.userRate)}</b> vs 未使用组 <b>${pct(DATA.otherRate)}</b>，相差 <b>${((DATA.userRate-DATA.otherRate)*100).toFixed(1)} 个百分点</b>`;
+  `使用组 <b>${pct(DATA.userRate)}</b>，比未使用组 <b>${pct(DATA.otherRate)}</b> 低 <b>${((DATA.otherRate-DATA.userRate)*100).toFixed(1)} 个百分点</b>`;
 document.getElementById('cmpNote').innerHTML =
-  `使用批量反馈的教辅整体略低于未使用组。结合后面的年级数据看，使用组里低年级占比更高（一、二年级查看率仅 23% 左右），结构差异会放大这 $0.9$ 个点的差距。`;
+  `使用批量反馈的教辅整体略低于未使用组。结合后面的年级数据看，使用组里低年级占比更高（一、二年级查看率仅 23% 左右），结构差异会放大这 0.9 个点的差距。`;
 
 // 2. bands
 const bandLabels = ['≥50%','40–50%','30–40%','20–30%','<20%'];
@@ -286,7 +286,7 @@ document.getElementById('dayChips').innerHTML =
    <span class="chip">10/2–10/8 无记录</span>`;
 
 // 6. scatter
-const pts = DATA.userDetail.map(d=>({x:d.uses,y:d.rate,r:d.total,name:d.name,viewed:d.viewed}));
+const pts = DATA.userDetail.map(d=>({x:d.uses,y:d.rate,r:4+Math.min(14,d.total/700),name:d.name,viewed:d.viewed,total:d.total}));
 new Chart(document.getElementById('scatterChart'), {
   type:'bubble',
   data:{datasets:[{data:pts,backgroundColor:'rgba(79,70,229,.55)',borderColor:C.indigo,borderWidth:1}]},
@@ -294,6 +294,17 @@ new Chart(document.getElementById('scatterChart'), {
     plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{const d=c.raw;return [`${d.name} · 使用 ${d.x} 次`,`查看率 ${pct(d.y)}`,`点评总数 ${fmt(d.r)}`];}}}},
     scales:{x:{title:{display:true,text:'批量反馈使用次数',color:'#8B8899'},grid:{color:C.line},ticks:{color:'#8B8899'}},
       y:{title:{display:true,text:'点评查看率',color:'#8B8899'},grid:{color:C.line},ticks:{color:'#8B8899',callback:v=>(v*100)+'%'},suggestedMin:0,suggestedMax:.55}}}
+  ,plugins:[{
+    id:'avgLine',
+    afterDatasetsDraw(chart){
+      const y=chart.scales.y.getPixelForValue(DATA.userRate);
+      const {left,right}=chart.chartArea, ctx=chart.ctx;
+      ctx.save(); ctx.strokeStyle=C.indigo; ctx.setLineDash([5,4]); ctx.lineWidth=1.2;
+      ctx.beginPath(); ctx.moveTo(left,y); ctx.lineTo(right,y); ctx.stroke();
+      ctx.setLineDash([]); ctx.fillStyle=C.indigo; ctx.font='11px sans-serif';
+      ctx.fillText('使用组平均 '+pct(DATA.userRate), left+6, y-6); ctx.restore();
+    }
+  }]
 });
 const topU = [...DATA.userDetail].slice(0,10);
 document.getElementById('topUses').innerHTML = topU.map((d,i)=>`
