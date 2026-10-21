@@ -212,7 +212,7 @@ new Chart(document.getElementById('cmpChart'), {
       backgroundColor:[C.teal,C.slate,C.indigo], borderRadius:6, barThickness:36}]},
   options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
     plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${pct(c.parsed.x)}`}}},
-    scales:{x:{min:0,max:50,grid:{color:C.line},ticks:{color:'#8B8899',callback:v=>v+'%'}},
+    scales:{x:{min:0,max:.5,grid:{color:C.line},ticks:{color:'#8B8899',callback:v=>Math.round(v*100)+'%'}},
       y:{grid:{display:false},ticks:{color:'#4A4763',font:{size:12.5}}}}}
 });
 document.getElementById('gapCallout').innerHTML =
